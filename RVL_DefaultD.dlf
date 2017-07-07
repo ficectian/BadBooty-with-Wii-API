@@ -1,0 +1,12 @@
+v2.00
+RVL_CONFIG_FILE,"RVL_DefaultD.rcf"
+0x0000000000000000,"RVL_DefaultD.dsf"
+0x00000000feefd40c,"C:\work\BadBooty\dvddata\kick.dsp"
+0x00000000feefea20,"C:\work\BadBooty\dvddata\LandPixel.tpl"
+0x00000000fef014a0,"C:\work\BadBooty\dvddata\LOSE.tpl"
+0x00000000ff02d4e0,"C:\work\BadBooty\dvddata\Player.tpl"
+0x00000000ff42d520,"C:\work\BadBooty\dvddata\scren.tpl"
+0x00000000ff559560,"C:\work\BadBooty\dvddata\title.tpl"
+0x00000000ff6855a0,"C:\work\BadBooty\dvddata\titleint.tpl"
+0x00000000ff693fa0,"C:\work\BadBooty\dvddata\WIN.tpl"
+0x00000000ff7c0000,""
