@@ -39,6 +39,15 @@
 #define	LOSETEX	 "LOSE.tpl"
 #define	TITLETEX	 "title.tpl"
 #define	TITLEINTTEX		"titleint.tpl"
+#define HeadBackgroundTex	"HeadBackground.tpl"
+#define HeadTex	"Head.tpl"
+#define PlayerHPTEX	"PlayerHP.tpl"
+#define PlayerHPC1TEX	"PlayerHPColor1.tpl"
+#define PlayerHPC2TEX	"PlayerHPColor2.tpl"
+#define	GRASSTEX "Grass.tpl"
+#define LANDTEX	"Land.tpl"
+
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //		グローバル変数
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -210,6 +219,33 @@ private:
 
 
 };
+
+class UIClass {
+public:
+
+
+	void Init();
+	/*void Update();
+	void BackDraw();*/
+	void Draw(int);
+	UIClass() {
+		Ustart = 0.0f;
+		Vstart = 0.0f;
+		Uwidth = 1.0f;
+		Vheight = 1.0f;
+	}
+private:
+	TPLPalettePtr Tex;
+	GXTexObj TexObj;
+	f32	X;
+	f32	Y;
+	f32 Width;
+	f32 Height;
+	f32 Ustart;
+	f32 Vstart;
+	f32 Uwidth;
+	f32 Vheight;
+};
 //typedef struct {
 //	TPLPalettePtr Tex;
 //	GXTexObj TexObj;
@@ -233,13 +269,13 @@ enum {
 	GAME_OVER,
 	GAME_WIN
 };
-
+/*
 enum {
 	StationAnime,
 	RunAnime,
 	JumpAnime
 };
-
+*/
 enum {
 	StationStatus,
 	RunStatus,
@@ -268,6 +304,7 @@ extern PlayerClass Player;
 extern ImageClass *Image;
 extern DisplayClass Display;
 extern ImaginaryBackground Background;
+extern UIClass *GameUI;
 /*
 ImageClass WIN;
 ImageClass LOSE;*/
@@ -276,7 +313,7 @@ const u8 AnimeStation[64] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
 const u8 AnimeRun[64] = { 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 9, 9, 9, 9, 9, 9, 9, 0xff };
 const u8 AnimeJump[64] = { 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0xff };
 const u8 AnimeDefense[64] = { 24, 24, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26, 26, 25, 25, 25, 25, 25, 25, 25, 25, 25, 0xff };//0xff：終了コード
-const u8 AnimeAttack[64] = { 32, 32, 32, 32, 32, 32, 33, 33, 33, 33, 33, 33, 33, 33, 34, 34, 34, 34, 34, 34, 33, 33, 33, 33, 33, 33, 33, 32, 32, 32, 32, 32, 32, 0xff };//0xff：終了コード
+const u8 AnimeAttack[64] = { 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 0xff };//0xff：終了コード
 const u8 *Anime_data[5] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack };
 
 u8 fcnt;
@@ -308,6 +345,8 @@ void	GameDraw();
 //		エントリーポイント
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 int main(void){
+	
+
 	WiiMainInit(); //初期化
 	
 	//		ゲームルーブ
@@ -337,7 +376,7 @@ void WiiMainInit(){
 	DEMOInit(NULL);						//主要モジュールも内部で初期化されます｛os,pad,gx,vi}
 	init_memory2();	//メモリ確保
 	init_KPAD();	//リモコン初期化
-	Status = TITLE;
+	Status = GAME_START;
 	fcnt = 0;
 	Image->TitleInit();
 	// サウンド用メモリ確保
@@ -389,6 +428,7 @@ void GameUpdate(){
 		Display.Init(Background);
 		Image->Init();
 		Player.Init();
+		GameUI->Init();
 		Status = GAME_PLAY;
 		break;
 	case GAME_PLAY:
@@ -433,6 +473,7 @@ void GameDraw(){
 		Image->BackDraw();
 		Player.Draw();
 		Image->UpDraw(Player.nHp);
+		GameUI->Draw(Player.nHp);
 		/*for (u8 i = 0; i < ENEMYNUM; i++) {Enemy[i].Draw();}*/
 	
 		/*for(u8 i=0;i<5;i++){
@@ -601,10 +642,12 @@ ImageClass Scren;
 //ImageClass Land;
 ImageClass Title;
 ImageClass Titleint;
+ImageClass Grass[128];
 ImageClass LandPixel[256];
 ImageClass Footing[256];
 u8 LandNum;
 u8 FootingNum;
+u8 GrassNum;
 ImaginaryBackground Background;
 DisplayClass Display;
 
@@ -616,26 +659,40 @@ void ImageClass::Init() {
 	TPLGetPalette(&LandPixel[0].Tex, LANDPIXELTEX);
 	TPLGetGXTexObjFromPalette(LandPixel[0].Tex, &LandPixel[0].TexObj, 0);
 
-	TPLGetPalette(&Footing[0].Tex, LANDPIXELTEX);
+	TPLGetPalette(&Footing[0].Tex, LANDTEX);
 	TPLGetGXTexObjFromPalette(Footing[0].Tex, &Footing[0].TexObj, 0);
+	TPLGetPalette(&Grass[0].Tex, GRASSTEX);
+	TPLGetGXTexObjFromPalette(Grass[0].Tex, &Grass[0].TexObj, 0);
 
-
-	LandPixel[0].Width = 50;
+	LandPixel[0].Width = 60;
 	LandNum = Background.width / LandPixel[0].Width + 1;
 	//LandNum = 41;
 	for (int i = 0; i < LandNum; i++) {
-		LandPixel[i].Height = 50;
-		LandPixel[i].Width = 50;
+		LandPixel[i].Height = 100;
+		LandPixel[i].Width = 60;
 		LandPixel[i].Ustart = 0.0f;
 		LandPixel[i].Uwidth = 1.0f;
 		LandPixel[i].Vstart = 0.0f;
 		LandPixel[i].Vheight = 1.0f;
-		LandPixel[i].Y = SCREEN_HEIGHT - 25;
+		LandPixel[i].Y = SCREEN_HEIGHT - LandPixel[i].Height / 2;
 		LandPixel[i].DisplayY = LandPixel[i].Y;
 		LandPixel[i].X = LandPixel[i].Width / 2 + i*LandPixel[i].Width;
 		LandPixel[i].DisplayX = LandPixel[i].X;
 	}
-
+	Grass[0].Width = 60;
+	GrassNum = Background.width / Grass[0].Width + 1;
+	for (int i = 0; i < GrassNum; i++) {
+		Grass[i].Height = 60;
+		Grass[i].Width = 60;
+		Grass[i].Ustart = 0.0f;
+		Grass[i].Uwidth = 1.0f;
+		Grass[i].Vstart = 0.0f;
+		Grass[i].Vheight = 1.0f;
+		Grass[i].Y = SCREEN_HEIGHT - Grass[i].Height / 2;
+		Grass[i].DisplayY = Grass[i].Y;
+		Grass[i].X = Grass[i].Width / 2 + i*Grass[i].Width;
+		Grass[i].DisplayX = Grass[i].X;
+	}
 	Scren.Width = SCREEN_WIDTH;
 	Scren.Height = SCREEN_HEIGHT;
 	Scren.X = Scren.Width / 2;
@@ -662,11 +719,14 @@ void ImageClass::Update(){
 
 	Display.Update(Background);
 	//Land.Ustart += 0.0003f;
-	for (int i = 0; i < LandNum; i++) {
+	for (u8 i = 0; i < LandNum; i++) {
 		LandPixel[i].Sync(Display);
 	}
-	for (int i = 0; i < FootingNum; i++) {
+	for (u8 i = 0; i < FootingNum; i++) {
 		Footing[i].Sync(Display);
+	}
+	for (u8 i = 0; i < GrassNum; i++) {
+		Grass[i].Sync(Display);
 	}
 }
 
@@ -705,7 +765,9 @@ void ImageClass::BackDraw() {
 }
 
 void ImageClass::UpDraw(int HP) {
-
+	for (int i = 0; i < GrassNum; i++) {
+		Draw2DCharacter(Grass[0].TexObj, Grass[i].DisplayX, Grass[i].DisplayY, Grass[i].Width, Grass[i].Height, Grass[i].Ustart, Grass[i].Vstart, Grass[i].Uwidth, Grass[i].Vheight);
+	}
 }
 
 
@@ -726,14 +788,14 @@ void PlayerClass::Init() {
 	TPLGetPalette(&Player.Tex, PLAYERTEX);
 	TPLGetGXTexObjFromPalette(Player.Tex, &Player.TexObj, 0);   //2017.5.19追加
 	Initial_x = (float)Display.width / 2;
-	Initial_y = (float)(Display.height - 40 - 64);
+	Initial_y = (float)(Display.height - 50 - 64);
 	X = Initial_x;
 	Y = Initial_y;
 	Width = (u8)(128/(544/480));
 	Height = (u8)(128/(544/480));
 	Width = 128;
 	Height = 128;
-	nHp = 6;
+	nHp = 30;
 	InvincibleState = 0;
 	Ustart = 0.0f;
 	Uwidth = (f32)1/8;
@@ -997,8 +1059,71 @@ void PlayerClass::Animetion() {
 			cnt = 0;
 		}
 	}
-	Ustart = ((*(ptAnime + cnt)) % (int)(1 / Uwidth))*Uwidth;
-	Vstart = ((*(ptAnime + cnt)) / (int)(1 / Vheight))*Vheight;
+	Ustart = ((*(ptAnime + cnt)) % (u8)(1 / Uwidth))*Uwidth;
+	Vstart = ((*(ptAnime + cnt)) / (u8)(1 / Vheight))*Vheight;
 	cnt += 1;
 	//if (*(ptAnime + cnt) == 0xff) { cnt = 0; }
+}
+
+
+UIClass *GameUI;
+UIClass	PlayerHeadBackground;
+UIClass	PlayerHead;
+UIClass	PlayerHP;
+UIClass	PlayerHP1;
+UIClass	PlayerHP2;
+void UIClass::Init(){
+	TPLGetPalette(&PlayerHeadBackground.Tex, HeadBackgroundTex);
+	TPLGetGXTexObjFromPalette(PlayerHeadBackground.Tex, &PlayerHeadBackground.TexObj, 0);
+
+	TPLGetPalette(&PlayerHead.Tex, HeadTex);
+	TPLGetGXTexObjFromPalette(PlayerHead.Tex, &PlayerHead.TexObj, 0);
+	TPLGetPalette(&PlayerHP.Tex, PlayerHPTEX);
+	TPLGetGXTexObjFromPalette(PlayerHP.Tex, &PlayerHP.TexObj, 0);
+	TPLGetPalette(&PlayerHP1.Tex, PlayerHPC1TEX);
+	TPLGetGXTexObjFromPalette(PlayerHP1.Tex, &PlayerHP1.TexObj, 0);
+	TPLGetPalette(&PlayerHP2.Tex, PlayerHPC2TEX);
+	TPLGetGXTexObjFromPalette(PlayerHP2.Tex, &PlayerHP2.TexObj, 0);
+	
+	PlayerHeadBackground.Width = 270;
+	PlayerHeadBackground.Height = 77;
+	PlayerHeadBackground.X = 10 + PlayerHeadBackground.Width / 2;
+	PlayerHeadBackground.Y = 10 + PlayerHeadBackground.Height / 2;
+
+	PlayerHead.Width = 68;
+	PlayerHead.Height = 68;
+	PlayerHead.X = 10 + 5 + PlayerHead.Width / 2;
+	PlayerHead.Y = 10 + 5 + PlayerHead.Height / 2;
+
+	PlayerHP.Width = 10;
+	PlayerHP.Height = 22;
+	PlayerHP.X = 10 + 68 + PlayerHP.Width / 2;
+	PlayerHP.Y = 10 + 44 + PlayerHP.Height / 2;
+	PlayerHP.Uwidth = (f32)1 / 2;
+	PlayerHP.Vheight = (f32)1 / 2;
+
+}
+
+void UIClass::Draw(int HP) {
+	
+	if (HP >= 20) {
+		for (u8 i = 0; i < 20; i++) {
+			Draw2DCharacter(PlayerHP1.TexObj, PlayerHP.X + i*PlayerHP.Width, PlayerHP.Y, PlayerHP.Width, PlayerHP.Height, PlayerHP.Ustart, PlayerHP.Vstart, PlayerHP.Uwidth, PlayerHP.Vheight);
+		}
+		for (u8 i = 0; i < HP - 20; i++) {
+			Draw2DCharacter(PlayerHP2.TexObj, PlayerHP.X + i*PlayerHP.Width, PlayerHP.Y, PlayerHP.Width, PlayerHP.Height, PlayerHP.Ustart, PlayerHP.Vstart, PlayerHP.Uwidth, PlayerHP.Vheight);
+		}
+	}
+	else
+	{
+		for (u8 i = 0; i < HP; i++) {
+			Draw2DCharacter(PlayerHP1.TexObj, PlayerHP.X + i*PlayerHP.Width, PlayerHP.Y, PlayerHP.Width, PlayerHP.Height, PlayerHP.Ustart, PlayerHP.Vstart, PlayerHP.Uwidth, PlayerHP.Vheight);
+		}
+	}
+	//Draw2DCharacter(PlayerHP.TexObj, 10 + 68 + 100, PlayerHP.Y, PlayerHP.Width * 20, PlayerHP.Height, PlayerHP.Ustart, PlayerHP.Vstart, 0.5f, PlayerHP.Vheight);
+
+	Draw2DCharacter(PlayerHeadBackground.TexObj, PlayerHeadBackground.X, PlayerHeadBackground.Y, PlayerHeadBackground.Width, PlayerHeadBackground.Height, PlayerHeadBackground.Ustart, PlayerHeadBackground.Vstart, PlayerHeadBackground.Uwidth, PlayerHeadBackground.Vheight);
+	Draw2DCharacter(PlayerHead.TexObj, PlayerHead.X, PlayerHead.Y, PlayerHead.Width, PlayerHead.Height, PlayerHead.Ustart, PlayerHead.Vstart, PlayerHead.Uwidth, PlayerHead.Vheight);
+
+
 }
