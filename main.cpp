@@ -26,7 +26,8 @@
 #define ENEMY1DEFY  (SCREEN_HEIGHT / 2)
 #define ENEMY2DEFY (SCREEN_HEIGHT / 2 + 150)
 #define ENEMYSHOOTMAX (255)
-#define PLAYERSPEED (4)
+#define PLAYERSPEED (6)
+#define SWORDENEMYSPEED (3)
 #define HEATSIZE		(20.0f)
 #define HEATGAP		(30.0f)
 
@@ -46,6 +47,7 @@
 #define PlayerHPC2TEX	"PlayerHPColor2.tpl"
 #define	GRASSTEX "Grass.tpl"
 #define LANDTEX	"Land.tpl"
+#define ENEMYTEX "Enemy.tpl"
 
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -55,12 +57,74 @@
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //		グローバル変数
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+enum {
+	TITLE,
+	GAME_START,
+	GAME_PLAY,
+	RESULT,
+	GAME_OVER,
+	GAME_WIN
+};
+/*
+enum {
+	StationAnime,
+	RunAnime,
+	JumpAnime
+};
+*/
+enum {
+	StationStatus,
+	RunStatus,
+	JumpStatus,
+	DefenseStatus,
+	AttackStatus
+};
+enum {
+	EnemyRunAnime,
+	EnemyAttAnime,
+	EnemyHitAnime
+};
+
+enum {
+	PatrolMod,
+	HitMod,
+	TrackMod,
+	ReturnMod
+};
 class PlayerClass{
 public:
 	f32 X;	//年齢
 	f32 Y;	//攻撃力
 	int	nHp;	//体力
 	u8 InvincibleState;
+
+	f32 AttBox_X() {
+		if (FacedRight) {
+			return (f32)X + 1;
+		}
+		else{
+			return (f32)X - 45;
+		}
+	}
+	f32 AttBox_Y() {
+		return (f32)Y - 61;
+	}
+	f32 AttBox_Wdith;
+	f32 AttBox_Height;
+	f32 HitBox_X() {
+		if (FacedRight) {
+			return (f32)X - 43;
+		}
+		else {
+			return (f32)X;
+		}
+	}
+	f32 HitBox_Y() {
+		return (f32)Y - 47;
+	}
+	f32 HitBox_Wdith;
+	f32 HitBox_Height;
 	void Init();
 	void Update();
 	void Draw();
@@ -69,6 +133,31 @@ public:
 	void Jump();
 	void Attack();
 	void Animetion();
+	bool HitStair();
+	void AllHitTest();
+	u8 StopTime;
+	PlayerClass() {
+		InvincibleTime = 0;
+		Width = 128;
+		Height = 128;
+		Ustart = 0.0f;
+		Uwidth = (f32)1 / 8;
+		Vstart = 0.0f;
+		Vheight = (f32)1 / 8;
+		FacedRight = true;
+		StatusStyle = StationStatus;
+		cnt = 0;
+		JumpCnt = 0;
+		InDoubleJumpStatus = false;
+		InFall = false;
+		AttBox_Wdith = 46.0f;
+		AttBox_Height = 69.0f;
+		HitBox_Wdith = 43.0f;
+		HitBox_Height = 111.0f;
+		StopTime = 0;
+	
+		 
+	}
 private:
 	TPLPalettePtr Tex;
 	GXTexObj TexObj;
@@ -84,6 +173,15 @@ private:
 	f32 Uwidth;
 	f32 Vheight;
 	bool InDoubleJumpStatus;
+
+	static const u8 AnimeStation[64];
+	static const u8 AnimeRun[64];
+	static const u8 AnimeJump[64];
+	static const u8 AnimeDefense[64];
+	static const u8 AnimeAttack[64]; 
+	static const u8 AnimeHit[64]; 
+	//static 	const u8 *Anime_data[6];// = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit };
+
 	u8 cnt;
 	u8 JumpCnt;
 	u8 StatusStyle;
@@ -91,31 +189,147 @@ private:
 	f32 Initial_x;
 	f32 Initial_y;
 	bool InFall;
-
+	int OnStairNum;
+	bool MoveHit();
+	bool AttHit(f32 x, f32 y, f32 w, f32 h) {
+		if (((AttBox_Y() + AttBox_Height >= y) && (AttBox_Y() - h <= y)) && ((AttBox_X() + AttBox_Wdith >= x) && (AttBox_X() - w <= x)))
+		{
+			return true;
+		}
+		else
+		{
+			return 	false;
+		}
+	}
+	bool HitHit(f32 x, f32 y, f32 w, f32 h) {
+		if (((HitBox_Y() + HitBox_Height >= y) && (HitBox_Y() - h <= y)) && ((HitBox_X() + HitBox_Wdith >= x) && (HitBox_X() - w <= x)))
+		{
+			return true;
+		}
+		else
+		{
+			return 	false;
+		}
+	}
+	void HitOn();
+	void Hit();
+	u8 HitCnt;
+	u8 InvincibleTime;
 };
 
 
-//typedef struct {
-//	TPLPalettePtr Tex;
-//	GXTexObj TexObj;
-//	TPLPalettePtr DeadTex;
-//	GXTexObj DeadTexObj;
-//	f32 X;	
-//	f32 Y;	
-//	f32 Width;
-//	f32 Height;
-//	f32 Ustart;
-//	f32 Vstart;
-//	f32 Uwidth;
-//	f32 Vheight;
-//	int nHp;	//体力
-//	f32 Flg;
-//	u8 Hitting;
-//	void Init(u8);
-//	void Update(u8);
-//	void Draw();
-//	u8 cnt;
-//}ENEMY;
+class EnemyClass {
+
+
+public:
+	f32 DisplayX;
+	f32 DisplayY;
+	f32 X;	//年齢
+	f32 Y;	//攻撃力
+	f32 HitBox_X() {
+		if (FacedLeft) {
+			return (f32)DisplayX - 3;
+		}
+		else {
+			return (f32)DisplayX - 35;
+		}
+	}
+	f32 HitBox_Y() {
+		return (f32)DisplayY - 39;
+	}
+	f32 HitBox_Wdith;
+	f32 HitBox_Height;
+
+	f32 AttBox_X() {
+		if (FacedLeft) {
+			return (f32)DisplayX - 61;
+		}
+		else {
+			return (f32)DisplayX + 4;
+		}
+	}
+	f32 AttBox_Y() {
+		return (f32)Y - 39;
+	}
+	f32 AttBox_Wdith;
+	f32 AttBox_Height;
+	int Hp;	//体力
+	void AllInit();
+	void AllUpdate();
+	void AllDraw();
+	//void Sync(DisplayClass Display) {
+	//	DisplayX = X - Display.MoveDistance.x;
+	//}
+	u8 ActionMod;
+	void HitOn();
+	bool FacedLeft;
+	u8 InvincibleTime;
+	void Track();
+	void Return();
+	bool PlayerHit() {
+		extern PlayerClass Player;
+		if (((HitBox_Y() + HitBox_Height >= Player.HitBox_Y()) && (HitBox_Y() - Player.HitBox_Height <= Player.HitBox_Y())) && ((HitBox_X() + HitBox_Wdith >= Player.HitBox_X()) && (HitBox_X() - Player.HitBox_Wdith <= Player.HitBox_X())))
+		{
+			return true;
+		}
+		else
+		{
+			return 	false;
+		}
+	}
+	EnemyClass() {
+		//bool bret = DXLoadTexture(ENEMYTEX, &Tex);
+		Width = 128;
+		Height = 128;
+		InvincibleTime = 0;
+		Hp = 5;
+		Ustart = 0.0f;
+		Uwidth = (f32)1 / 4;
+		Vstart = 0.0f;
+		Vheight = (f32)1 / 4;
+		FacedLeft = true;
+		StatusStyle = EnemyRunAnime;
+		cnt = 0;
+		ActionMod = PatrolMod;
+		HitBox_Wdith = 38.0f;
+		HitBox_Height = 103.0f;
+		AttBox_Wdith = 57.0f;
+		AttBox_Height = 60.0f;
+	}
+	u8 AnimeCnt() {
+		const u8 *Anime_data[3] = { AnimeRun,AnimeAttack,AnimeHit };
+		const u8 *ptEnemyAnime = Anime_data[StatusStyle];
+		return *(ptEnemyAnime + cnt);
+	}
+private:
+	TPLPalettePtr Tex;
+	GXTexObj TexObj;
+	TPLPalettePtr DeadTex;
+	GXTexObj DeadTexObj;
+	f32 InitialX;
+	f32 InitialY;
+
+	f32 Width;
+	f32 Height;
+	f32 Ustart;
+	f32 Vstart;
+	f32 Uwidth;
+	f32 Vheight;
+
+
+	void Animetion();
+	void	Patrol();
+	void Update();
+	void Draw();
+	void Hit();
+	u8 HitCnt;
+	static const u8 AnimeRun[64]; 
+	static const u8 AnimeAttack[64];  
+	static const u8 AnimeHit[64];
+	//const u8 *Anime_data[3] = { AnimeRun, AnimeAttack, AnimeHit };
+	u8 StatusStyle;
+	u8 cnt;
+};
 
 
 typedef struct {
@@ -261,28 +475,7 @@ private:
 //	void Draw();
 //}SHOOT;
 
-enum {
-	TITLE,
-	GAME_START,
-	GAME_PLAY,
-	RESULT,
-	GAME_OVER,
-	GAME_WIN
-};
-/*
-enum {
-	StationAnime,
-	RunAnime,
-	JumpAnime
-};
-*/
-enum {
-	StationStatus,
-	RunStatus,
-	JumpStatus,
-	DefenseStatus,
-	AttackStatus
-};
+
 
 static f32 LandUMove = 0.0f;
 u8 score_draw[5] = {0,0,0,0,0}; 
@@ -305,9 +498,11 @@ extern ImageClass *Image;
 extern DisplayClass Display;
 extern ImaginaryBackground Background;
 extern UIClass *GameUI;
+extern EnemyClass *Enemy;
+
 /*
 ImageClass WIN;
-ImageClass LOSE;*/
+ImageClass LOSE;
 //SHOOT Shoot[SHOOTNUM];
 const u8 AnimeStation[64] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0xff };//0xff：終了コード
 const u8 AnimeRun[64] = { 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 9, 9, 9, 9, 9, 9, 9, 0xff };
@@ -315,7 +510,7 @@ const u8 AnimeJump[64] = { 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 1
 const u8 AnimeDefense[64] = { 24, 24, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26, 26, 25, 25, 25, 25, 25, 25, 25, 25, 25, 0xff };//0xff：終了コード
 const u8 AnimeAttack[64] = { 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 0xff };//0xff：終了コード
 const u8 *Anime_data[5] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack };
-
+*/
 u8 fcnt;
 u8 Status;
 //u8 Anime_style;// = 0;
@@ -428,12 +623,22 @@ void GameUpdate(){
 		Display.Init(Background);
 		Image->Init();
 		Player.Init();
+		Enemy->AllInit();
+
 		GameUI->Init();
+
 		Status = GAME_PLAY;
 		break;
 	case GAME_PLAY:
-		Image->Update();
-		Player.Update();
+		if (Player.StopTime == 0) {
+			Image->Update();
+			Enemy->AllDraw();
+
+			Player.Update();
+			Enemy->AllUpdate();	}else{
+			Player.StopTime -= 1;
+		}
+
 		if (Player.nHp <= -10) { 
 			Status = GAME_OVER;	
 			/*
@@ -471,6 +676,7 @@ void GameDraw(){
 		Draw2DCharacter(Cloud.TexObj, Cloud.X, Cloud.Y, Cloud.Width, Cloud.Height, 0, 0, 1, 1);//sky
 		*/
 		Image->BackDraw();
+		Enemy->AllDraw();
 		Player.Draw();
 		Image->UpDraw(Player.nHp);
 		GameUI->Draw(Player.nHp);
@@ -781,7 +987,12 @@ PlayerClass Player;
 //ENEMY Enemy[ENEMYNUM];
 //SHOOT Shoot[SHOOTNUM];
 //ENEMYSHOOT EnemyShoot[ENEMYSHOOTMAX];
-
+const u8 PlayerClass::AnimeStation[64] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0xff };//0xff：終了コード
+const u8 PlayerClass::AnimeRun[64] = { 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 9, 9, 9, 9, 9, 9, 9, 0xff };
+const u8 PlayerClass::AnimeJump[64] = { 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0xff };
+const u8 PlayerClass::AnimeDefense[64] = { 24, 24, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26, 26, 25, 25, 25, 25, 25, 25, 25, 25, 25, 0xff };//0xff：終了コード
+const u8 PlayerClass::AnimeAttack[64] = { 32, 32, 32, 32, 32, 32, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 0xff };//0xff：終了コード
+const u8 PlayerClass::AnimeHit[64] = { 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0xff };//0xff：終了コード
 void PlayerClass::Init() {
 	extern DisplayClass Display;
 
@@ -882,8 +1093,9 @@ void	PlayerClass::Operation() {
 		if (FacedRight) {
 			if (X - Width / 2 < Display.width / 4 && Display.Fix_x + Display.MoveDistance_x > 10) {
 				Display.MoveDistance_x -= PLAYERSPEED / 2;
+				MoveHit();
 			}
-			else if (X - Width / 2 > 0) { X -= PLAYERSPEED / 2; }
+			else if (X - Width / 2 > 0) { X -= PLAYERSPEED / 2; MoveHit(); }
 
 
 			if (StatusStyle != JumpStatus) {
@@ -893,9 +1105,11 @@ void	PlayerClass::Operation() {
 		else {
 			if (X - Width / 2 < Display.width / 4 && Display.Fix_x + Display.MoveDistance_x > 10) {
 				Display.MoveDistance_x -= PLAYERSPEED;
+				MoveHit();
 			}
 			else if (X - Width / 2 > 0) {
 				X -= PLAYERSPEED;
+				MoveHit();
 			}
 			if (StatusStyle != JumpStatus) {
 				if (StatusStyle != RunStatus) {
@@ -909,8 +1123,9 @@ void	PlayerClass::Operation() {
 		if (FacedRight) {
 			if (X + Width / 2 > Display.width * 3 / 4 && Display.MoveDistance_x + Display.width <= Background.width - 10) {
 				Display.MoveDistance_x += PLAYERSPEED;
+				MoveHit();
 			}
-			else if (X + Width / 2 < Display.width) { X += PLAYERSPEED; }
+			else if (X + Width / 2 < Display.width) { X += PLAYERSPEED; MoveHit(); }
 
 			if (StatusStyle != JumpStatus) {
 				if (StatusStyle != RunStatus) {
@@ -922,8 +1137,9 @@ void	PlayerClass::Operation() {
 		else {
 			if (X + Width / 2 > Display.width * 3 / 4 && (Display.MoveDistance_x + Display.width) <= Background.width - 10) {
 				Display.MoveDistance_x += PLAYERSPEED / 2;
+				MoveHit();
 			}
-			else if (X + Width / 2 < Display.width) { X += PLAYERSPEED / 2; }
+			else if (X + Width / 2 < Display.width) { X += PLAYERSPEED / 2; MoveHit(); }
 			if (StatusStyle != JumpStatus) { if (StatusStyle != DefenseStatus) { cnt = 0;  StatusStyle = DefenseStatus; } }
 		}				//右移動
 	}
@@ -981,6 +1197,8 @@ void	PlayerClass::Operation() {
 void PlayerClass::Jump() {
 	extern u8 FootingNum;
 	extern ImageClass Footing[256];
+	const u8 *Anime_data[6] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit };
+
 	if (StatusStyle == JumpStatus) {
 		JumpCnt += 1;
 		//float vg = 10 - 0.98f*fcnt;
@@ -1035,6 +1253,8 @@ void PlayerClass::Jump() {
 //	Player 攻撃処理関数定義
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void PlayerClass::Attack() {
+const u8 *Anime_data[6] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit };
+
 	const u8 *ptAnime = Anime_data[StatusStyle];
 	cnt += 1;
 	if (*(ptAnime + cnt) == 0xff) {
@@ -1049,6 +1269,8 @@ void PlayerClass::Attack() {
 //	Player Animetion処理関数定義
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void PlayerClass::Animetion() {
+const u8 *Anime_data[6] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit };
+
 	const u8 *ptAnime = Anime_data[StatusStyle];
 	if (*(ptAnime + cnt) == 0xff) {
 
@@ -1064,7 +1286,21 @@ void PlayerClass::Animetion() {
 	cnt += 1;
 	//if (*(ptAnime + cnt) == 0xff) { cnt = 0; }
 }
+bool PlayerClass::MoveHit() {
+	extern EnemyClass SwordEnemy[10];
+	extern u8 SwordEnemyNum;
+	for (int i = 0; i < SwordEnemyNum; i++){
+		if (SwordEnemy[i].PlayerHit()) {
+			if (HitBox_X() < SwordEnemy[i].HitBox_X()) { X -= PLAYERSPEED; }
+			else {
+				X += PLAYERSPEED;
+			}
+			return true;
+		}
+	}
 
+	return false;
+}
 
 UIClass *GameUI;
 UIClass	PlayerHeadBackground;
@@ -1126,4 +1362,201 @@ void UIClass::Draw(int HP) {
 	Draw2DCharacter(PlayerHead.TexObj, PlayerHead.X, PlayerHead.Y, PlayerHead.Width, PlayerHead.Height, PlayerHead.Ustart, PlayerHead.Vstart, PlayerHead.Uwidth, PlayerHead.Vheight);
 
 
+}
+
+
+EnemyClass *Enemy;
+EnemyClass SwordEnemy[10];
+u8 SwordEnemyNum;
+const u8 EnemyClass::AnimeRun[64] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0xff };//0xff：終了コード
+const u8 EnemyClass::AnimeAttack[64] = { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0xfe };
+const u8 EnemyClass::AnimeHit[64] = { 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 0xff };
+
+
+void	EnemyClass::AllInit() {
+	extern DisplayClass Display;
+
+	TPLGetPalette(&SwordEnemy[0].Tex, ENEMYTEX);
+	TPLGetGXTexObjFromPalette(SwordEnemy[0].Tex, &SwordEnemy[0].TexObj, 0);
+	SwordEnemyNum = 1;
+	/*SwordEnemy[0].Width = 128;
+	SwordEnemy[0].Height = 128;*/
+	SwordEnemy[0].InitialX = 1200;
+	SwordEnemy[0].InitialY = (float)(Display.height - 50 - SwordEnemy[0].Height / 2);
+	SwordEnemy[0].X = SwordEnemy[0].InitialX;
+	SwordEnemy[0].Y = SwordEnemy[0].InitialY;
+	SwordEnemy[0].DisplayX = SwordEnemy[0].X;
+	SwordEnemy[0].DisplayY = SwordEnemy[0].Y;
+
+}
+void EnemyClass::AllUpdate() {
+	Display.Update(Background);
+
+	for (int i = 0; i < SwordEnemyNum; i++) {
+		//SwordEnemy[i].Sync(Display);
+		SwordEnemy[i].DisplayX = SwordEnemy[i].X - Display.MoveDistance_x;
+		//SwordEnemy[i].DisplayY = SwordEnemy[i].Y;
+		SwordEnemy[i].Update();
+	}
+}
+void	EnemyClass::AllDraw() {
+	for (int i = 0; i < SwordEnemyNum; i++) {
+		if (SwordEnemy[i].Hp > 0) {
+			SwordEnemy[i].Draw();
+		}
+	}
+}
+void EnemyClass::Animetion() {
+	const u8 *Anime_data[3] = { AnimeRun,AnimeAttack,AnimeHit };
+	const u8 *ptAnime = Anime_data[StatusStyle];
+	if (*(ptAnime + cnt) == 0xff) {
+		cnt = 0;
+	}
+	if (*(ptAnime + cnt) == 0xfe) {
+		StatusStyle = EnemyRunAnime;
+		cnt = 0;
+	}
+	Ustart = ((*(ptAnime + cnt)) % (int)(1 / Uwidth))*Uwidth;
+	Vstart = ((*(ptAnime + cnt)) / (int)(1 / Vheight))*Vheight;
+	cnt += 1;
+}
+
+void EnemyClass::Draw() {
+	Animetion();
+
+	if (FacedLeft) {
+		Draw2DCharacter(TexObj, DisplayX, DisplayY, Width, Height, Ustart, Vstart, Uwidth, Vheight);
+	}
+	else {
+		DrawPlayerRev(TexObj, DisplayX, DisplayY, Width, Height, Ustart, Vstart, Uwidth, Vheight);
+	}
+}
+
+
+
+void	EnemyClass::Update() {
+	if (InvincibleTime != 0) { InvincibleTime -= 1; }
+	switch (ActionMod)
+	{
+	case PatrolMod:
+		Patrol();
+		break;
+	case HitMod:
+		Hit();
+		break;
+	case TrackMod:
+		Track();
+		break;
+	case ReturnMod:
+		Return();
+		break;
+	default:
+		break;
+	}
+}
+
+void	EnemyClass::HitOn() {
+	HitCnt = 0;
+	cnt = 0;
+	StatusStyle = EnemyHitAnime;
+	ActionMod = HitMod;
+	InvincibleTime = 30;
+
+}
+
+void EnemyClass::Hit() {
+	extern PlayerClass Player;
+	HitCnt += 1;
+	if (Player.X <= DisplayX) {
+		X += 4;
+	}
+	else
+	{
+		X -= 4;
+	}
+	Y -= 10 - 0.98f*HitCnt;
+	if (Y > InitialY) {
+		Y = InitialY;
+		HitCnt = 0;
+		cnt = 0;
+		Hp -= 1;
+		StatusStyle = EnemyRunAnime;
+		ActionMod = PatrolMod;
+	}
+
+}
+
+void EnemyClass::Track() {
+	extern PlayerClass Player;
+	if (StatusStyle != EnemyAttAnime) {
+	/*
+		if (Player.X >= DisplayX) {
+			if (FacedLeft) { FacedLeft = false; }
+			if (!PlayerHit()) { X += SWORDENEMYSPEED; }
+		}
+		else {
+			if (!FacedLeft) { FacedLeft = true; }
+			if (!PlayerHit()) { X -= SWORDENEMYSPEED; }
+		}
+		*/
+		if (Player.X >= DisplayX) {
+			if (FacedLeft) { FacedLeft = false; }
+			 X += SWORDENEMYSPEED; 
+		}
+		else {
+			if (!FacedLeft) { FacedLeft = true; }
+			X -= SWORDENEMYSPEED; 
+		}
+		if (DisplayX - Player.X > 600 || DisplayX - Player.X < -600) {
+			ActionMod = ReturnMod;
+		}
+		if ((DisplayX - Player.X > 0 && DisplayX - Player.X < 64) || (DisplayX - Player.X<0 && DisplayX - Player.X >-64)) {
+			StatusStyle = EnemyAttAnime;
+			cnt = 0;
+		}
+	}
+}
+
+void EnemyClass::Patrol() {
+	extern PlayerClass Player;
+
+	if (FacedLeft) {
+		if (!PlayerHit()) { X -= SWORDENEMYSPEED; }
+		if (X < InitialX - 150 || X <= 0) {
+			if (!PlayerHit()) { X += SWORDENEMYSPEED * 2; }
+			FacedLeft = !FacedLeft;
+		}
+	}
+	else {
+		if (!PlayerHit()) { X += SWORDENEMYSPEED; }
+		if (X > InitialX + 150 || X >= Background.width) {
+			if (!PlayerHit()) { X -= SWORDENEMYSPEED * 2; }
+			FacedLeft = !FacedLeft;
+		}
+	}
+
+	if ((DisplayX - Player.X>0 && DisplayX - Player.X < 300) || (DisplayX - Player.X<0 && DisplayX - Player.X >-300)) {
+		ActionMod = TrackMod;
+	}
+
+
+}
+
+void EnemyClass::Return() {
+	extern PlayerClass Player;
+	if (InitialX >= X) {
+		if (FacedLeft) { FacedLeft = false; }
+		if (!PlayerHit()) { X += SWORDENEMYSPEED; }
+	}
+	else {
+		if (!FacedLeft) { FacedLeft = true; }
+		if (!PlayerHit()) { X -= SWORDENEMYSPEED; }
+	}
+
+	if ((X - InitialX>0 && DisplayX - X < 30) || (X - InitialX<0 && X - InitialX >-30)) {
+		ActionMod = PatrolMod;
+	}
+	if ((DisplayX - Player.X>0 && DisplayX - Player.X < 300) || (DisplayX - Player.X<0 && DisplayX - Player.X >-300)) {
+		ActionMod = TrackMod;
+	}
 }

@@ -1,6 +1,7 @@
 v2.00
 RVL_CONFIG_FILE,"RVL_DefaultD.rcf"
 0x0000000000000000,"RVL_DefaultD.dsf"
+0x00000000fedd60cc,"C:\work\BadBooty\dvddata\Enemy.tpl"
 0x00000000feed610c,"C:\work\BadBooty\dvddata\Grass.tpl"
 0x00000000feeda88c,"C:\work\BadBooty\dvddata\Head.tpl"
 0x00000000feedf10c,"C:\work\BadBooty\dvddata\HeadBackground.tpl"
