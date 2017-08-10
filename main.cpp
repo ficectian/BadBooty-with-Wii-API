@@ -26,10 +26,12 @@
 #define ENEMY1DEFY  (SCREEN_HEIGHT / 2)
 #define ENEMY2DEFY (SCREEN_HEIGHT / 2 + 150)
 #define ENEMYSHOOTMAX (255)
-#define PLAYERSPEED (6)
+#define PLAYERSPEED (5)
 #define SWORDENEMYSPEED (3)
 #define HEATSIZE		(20.0f)
 #define HEATGAP		(30.0f)
+#define BleedSize (15.0f)
+#define InitialPlayerHeight (100.0f)
 
 #define PLAYERTEX "Player.tpl"
 //#define FONTTEX "sysfont.tpl"
@@ -78,7 +80,9 @@ enum {
 	RunStatus,
 	JumpStatus,
 	DefenseStatus,
-	AttackStatus
+	AttackStatus,
+	HitStatus
+	//DoubleJumpStatus
 };
 enum {
 	EnemyRunAnime,
@@ -94,9 +98,13 @@ enum {
 };
 class PlayerClass{
 public:
-	f32 X;	//年齢
-	f32 Y;	//攻撃力
-	int	nHp;	//体力
+	f32 X;
+	f32 Y;
+	f32 DisplayX;
+	f32 DisplayY;
+	f32 Width;
+	f32 Height;
+	int	Hp;
 	u8 InvincibleState;
 
 	f32 AttBox_X() {
@@ -125,6 +133,7 @@ public:
 	}
 	f32 HitBox_Wdith;
 	f32 HitBox_Height;
+	u8 StatusStyle;
 	void Init();
 	void Update();
 	void Draw();
@@ -135,6 +144,7 @@ public:
 	void Animetion();
 	bool HitStair();
 	void AllHitTest();
+	bool BoundaryHitTest();
 	u8 StopTime;
 	PlayerClass() {
 		InvincibleTime = 0;
@@ -155,7 +165,7 @@ public:
 		HitBox_Wdith = 43.0f;
 		HitBox_Height = 111.0f;
 		StopTime = 0;
-	
+		EnemyInPlayerRight = false;
 		 
 	}
 private:
@@ -166,8 +176,7 @@ private:
 	TPLPalettePtr InvincibleTex;
 	GXTexObj InvincibleTexObj;
 	f32 JumpStartY;
-	f32 Width;
-	f32 Height;
+	int MaxHp;
 	f32 Ustart;
 	f32 Vstart;
 	f32 Uwidth;
@@ -184,7 +193,7 @@ private:
 
 	u8 cnt;
 	u8 JumpCnt;
-	u8 StatusStyle;
+
 	bool FacedRight;
 	f32 Initial_x;
 	f32 Initial_y;
@@ -215,6 +224,7 @@ private:
 	void Hit();
 	u8 HitCnt;
 	u8 InvincibleTime;
+	bool EnemyInPlayerRight;
 };
 
 
@@ -228,24 +238,24 @@ public:
 	f32 Y;	//攻撃力
 	f32 HitBox_X() {
 		if (FacedLeft) {
-			return (f32)DisplayX - 3;
+			return (f32)X - 3;
 		}
 		else {
-			return (f32)DisplayX - 35;
+			return (f32)X - 35;
 		}
 	}
 	f32 HitBox_Y() {
-		return (f32)DisplayY - 39;
+		return (f32)Y - 39;
 	}
 	f32 HitBox_Wdith;
 	f32 HitBox_Height;
 
 	f32 AttBox_X() {
 		if (FacedLeft) {
-			return (f32)DisplayX - 61;
+			return (f32)X - 61;
 		}
 		else {
-			return (f32)DisplayX + 4;
+			return (f32)X + 4;
 		}
 	}
 	f32 AttBox_Y() {
@@ -257,6 +267,7 @@ public:
 	void AllInit();
 	void AllUpdate();
 	void AllDraw();
+	bool AllHaveHp();
 	//void Sync(DisplayClass Display) {
 	//	DisplayX = X - Display.MoveDistance.x;
 	//}
@@ -324,7 +335,7 @@ private:
 	void Hit();
 	u8 HitCnt;
 	static const u8 AnimeRun[64]; 
-	static const u8 AnimeAttack[64];  
+	static const u8 AnimeAttack[128];  
 	static const u8 AnimeHit[64];
 	//const u8 *Anime_data[3] = { AnimeRun, AnimeAttack, AnimeHit };
 	u8 StatusStyle;
@@ -339,26 +350,35 @@ typedef struct {
 
 class DisplayClass {
 public:
-	f32 Fix_x;
-	f32 Fix_y;
+	f32 X;
+	f32 Y;
+	f32 Left_X() {
+		return X - width / 2;
+	}
+	f32 Up_Y() {
+		return Y - height / 2;
+	}
+	f32 Right_X() {
+		return X + width / 2;
+	}
+	f32 Down_Y() {
+		return Y + height / 2;
+	}
+//	f32 Fix_x;
+//	f32 Fix_y;
 	f32 MoveDistance_x;
 	f32 MoveDistance_y;
 	u16 height;
 	u16 width;
-	bool ShockOn;
+	u8 ShockOn;
 	void Init(ImaginaryBackground Background) {
-		height = SCREEN_HEIGHT;
-		width = SCREEN_WIDTH;
-		Fix_x = 50;
-		Fix_y = Background.height - height;
-		MoveDistance_x = 0;
-		MoveDistance_y = 0;
-		ShockOn = false;
-		cnt = 0;
+		X = Background.width/2;
+		Y = Background.height / 2;;
+	
 	}
-	void Shock(){
-		if (cnt >= 30) {
-			ShockOn = false;
+	void Shock(u8 ShockLv){
+		if (cnt >= 40) {
+			ShockOn = 0;
 			cnt = 0;
 		}
 		switch (cnt)
@@ -378,26 +398,88 @@ public:
 		case 22:
 		case 23:
 		case 24:
-			MoveDistance_x += 2;
+		case 30:
+		case 31:
+		case 32:
+		case 33:
+		case 34:
+			X -= ShockLv;
+			Y -= ShockLv - 1.0f;
+
 			break;
 		default:
-			MoveDistance_x -= 2;
+			X += ShockLv;
+			Y += ShockLv - 1.0f;
+
 			break;
 		}
-		/*if (cnt < 20) {
-		if (cnt % 2 == 0) {
-
-		}else{ MoveDistance.x -= 5; }
-		cnt += 1;}*/
 
 		cnt += 1;
 	}
 	void Update(ImaginaryBackground Background) {
-		if (ShockOn){
-			Shock();
+		extern PlayerClass Player;
+		if (ShockOn != 0) {
+			Shock(ShockOn);
 		}
-		Fix_x = MoveDistance_x;
-		Fix_y = Background.height - height + MoveDistance_y;
+		/*
+		else
+		{*/
+			if (Player.X - width / 2 > BleedSize && Player.X + width / 2 < Background.width - BleedSize) {
+				if (X > Player.X) {
+					if (Player.StatusStyle == DefenseStatus) {
+						X -= PLAYERSPEED/2;
+					}
+					else if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
+						X = Player.X;
+					}
+					else{
+						X -= PLAYERSPEED;
+					}
+				}
+				if (X < Player.X) {
+					if (Player.StatusStyle == DefenseStatus) {
+						X += PLAYERSPEED / 2;
+					}
+					else if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
+						X = Player.X;
+					}
+					else {
+						X += PLAYERSPEED;
+					}
+				}
+			}
+			if (Player.Y - height / 2 > BleedSize && Player.Y + height / 2 < Background.height - BleedSize) {
+				if (Y > Player.Y - height / 2 + InitialPlayerHeight + Player.Height / 2) {
+					if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
+						Y = Player.Y - height / 2 + InitialPlayerHeight + Player.Height / 2;
+					}else{
+						Y -= PLAYERSPEED;
+					}
+				}
+				
+				if (Y < Player.Y - height / 2 + InitialPlayerHeight + Player.Height / 2) {
+					if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
+						Y = Player.Y - height / 2 + InitialPlayerHeight + Player.Height / 2;
+					}else {
+						Y += PLAYERSPEED;
+					}
+				}
+				 
+			}
+			
+	//	}
+		MoveDistance_x = Left_X();
+		MoveDistance_y = Up_Y();
+	}
+	DisplayClass()
+	{
+		height = SCREEN_HEIGHT;
+		width = SCREEN_WIDTH;
+		MoveDistance_x = 0;
+		MoveDistance_y = 0;
+		ShockOn = false;
+		cnt = 0;
+	
 	}
 private:
 	u8 cnt;
@@ -419,17 +501,26 @@ public:
 	void UpDraw(int);
 	void Sync(DisplayClass Display) {
 		DisplayX = X - Display.MoveDistance_x;
+		DisplayY = Y - Display.MoveDistance_y;
 	}
 	f32 Width;
 	f32 Height;
 	TPLPalettePtr Tex;
+	
+	ImageClass() {
+		Ustart = 0.0f;
+		Uwidth = 1.0f;
+		Vstart = 0.0f;
+		Vheight = 1.0f;
+		cnt = 0;
+	}
+private:
 	GXTexObj TexObj;
-		f32 Ustart;
+	f32 Ustart;
 	f32 Vstart;
 	f32 Uwidth;
 	f32 Vheight;
-private:
-	
+	u8 cnt;
 
 
 };
@@ -639,7 +730,7 @@ void GameUpdate(){
 			Player.StopTime -= 1;
 		}
 
-		if (Player.nHp <= -10) { 
+		if (Player.Hp <= -10) { 
 			Status = GAME_OVER;	
 			/*
 			TPLGetPalette(&LOSE.Tex, LOSETEX);
@@ -678,8 +769,8 @@ void GameDraw(){
 		Image->BackDraw();
 		Enemy->AllDraw();
 		Player.Draw();
-		Image->UpDraw(Player.nHp);
-		GameUI->Draw(Player.nHp);
+		Image->UpDraw(Player.Hp);
+		GameUI->Draw(Player.Hp);
 		/*for (u8 i = 0; i < ENEMYNUM; i++) {Enemy[i].Draw();}*/
 	
 		/*for(u8 i=0;i<5;i++){
@@ -874,12 +965,8 @@ void ImageClass::Init() {
 	LandNum = Background.width / LandPixel[0].Width + 1;
 	//LandNum = 41;
 	for (int i = 0; i < LandNum; i++) {
-		LandPixel[i].Height = 100;
+		LandPixel[i].Height = 160;
 		LandPixel[i].Width = 60;
-		LandPixel[i].Ustart = 0.0f;
-		LandPixel[i].Uwidth = 1.0f;
-		LandPixel[i].Vstart = 0.0f;
-		LandPixel[i].Vheight = 1.0f;
 		LandPixel[i].Y = SCREEN_HEIGHT - LandPixel[i].Height / 2;
 		LandPixel[i].DisplayY = LandPixel[i].Y;
 		LandPixel[i].X = LandPixel[i].Width / 2 + i*LandPixel[i].Width;
@@ -888,12 +975,8 @@ void ImageClass::Init() {
 	Grass[0].Width = 60;
 	GrassNum = Background.width / Grass[0].Width + 1;
 	for (int i = 0; i < GrassNum; i++) {
-		Grass[i].Height = 60;
+		Grass[i].Height = 120;
 		Grass[i].Width = 60;
-		Grass[i].Ustart = 0.0f;
-		Grass[i].Uwidth = 1.0f;
-		Grass[i].Vstart = 0.0f;
-		Grass[i].Vheight = 1.0f;
 		Grass[i].Y = SCREEN_HEIGHT - Grass[i].Height / 2;
 		Grass[i].DisplayY = Grass[i].Y;
 		Grass[i].X = Grass[i].Width / 2 + i*Grass[i].Width;
@@ -905,16 +988,12 @@ void ImageClass::Init() {
 	Scren.Y = Scren.Height / 2;
 	FootingNum = 2;
 	Footing[0].X = 1024;
-	Footing[0].Y = SCREEN_HEIGHT - 120;
+	Footing[0].Y = SCREEN_HEIGHT - 220;
 	Footing[1].X = 1224;
-	Footing[1].Y = SCREEN_HEIGHT - 170;
+	Footing[1].Y = SCREEN_HEIGHT - 270;
 	for (int i = 0; i < FootingNum; i++) {
 		Footing[i].Height = 20;
 		Footing[i].Width = 100;
-		Footing[i].Ustart = 0.0f;
-		Footing[i].Uwidth = 1.0f;
-		Footing[i].Vstart = 0.0f;
-		Footing[i].Vheight = 1.0f;
 		Footing[i].DisplayY = Footing[i].Y;
 		Footing[i].DisplayX = Footing[i].X;
 	}
@@ -987,31 +1066,36 @@ PlayerClass Player;
 //ENEMY Enemy[ENEMYNUM];
 //SHOOT Shoot[SHOOTNUM];
 //ENEMYSHOOT EnemyShoot[ENEMYSHOOTMAX];
-const u8 PlayerClass::AnimeStation[64] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0xff };//0xff：終了コード
-const u8 PlayerClass::AnimeRun[64] = { 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 9, 9, 9, 9, 9, 9, 9, 0xff };
+const u8 PlayerClass::AnimeStation[64] = { 0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0xff };//0xff：終了コード
+const u8 PlayerClass::AnimeRun[64] = {8,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,0xff };
 const u8 PlayerClass::AnimeJump[64] = { 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0xff };
-const u8 PlayerClass::AnimeDefense[64] = { 24, 24, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26, 26, 25, 25, 25, 25, 25, 25, 25, 25, 25, 0xff };//0xff：終了コード
+const u8 PlayerClass::AnimeDefense[64] ={ 24,24,24,24,24,24,24,24,24,24,24,24,25,25,25,25,25,25,25,25,25,25,25,25,0xff };//0xff：終了コード
 const u8 PlayerClass::AnimeAttack[64] = { 32, 32, 32, 32, 32, 32, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 0xff };//0xff：終了コード
 const u8 PlayerClass::AnimeHit[64] = { 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0xff };//0xff：終了コード
+
+
 void PlayerClass::Init() {
 	extern DisplayClass Display;
 
 	TPLGetPalette(&Player.Tex, PLAYERTEX);
 	TPLGetGXTexObjFromPalette(Player.Tex, &Player.TexObj, 0);   //2017.5.19追加
-	Initial_x = (float)Display.width / 2;
-	Initial_y = (float)(Display.height - 50 - 64);
+	Initial_x = (f32)100+Display.width / 2;
+	Initial_y = (f32)(Display.height - InitialPlayerHeight - 64);
 	X = Initial_x;
 	Y = Initial_y;
-	Width = (u8)(128/(544/480));
-	Height = (u8)(128/(544/480));
-	Width = 128;
-	Height = 128;
-	nHp = 30;
+	DisplayX = X;
+	DisplayY = Y;
+//	Width = 128;
+//	Height = 128;
+	MaxHp = 28;
+	Hp = MaxHp;
 	InvincibleState = 0;
+	/*
 	Ustart = 0.0f;
 	Uwidth = (f32)1/8;
 	Vstart = 0.0f;
 	Vheight = (f32)1/8;
+	*/
 	FacedRight = true;
 	StatusStyle = StationStatus;
 	cnt = 0;
@@ -1019,46 +1103,28 @@ void PlayerClass::Init() {
 	InDoubleJumpStatus = false;
 }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//	Player落下判定関数定義
+//	Game LoopにPlayer更新関数定義
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-bool			PlayerClass::FallHitTest(float X1, float Y1, float W, float H)
-{
-	f32 XX1 = X - 24 / 2;
-	if (FacedRight) {
-		XX1 -= 5;
-	}
-	else {
-		XX1 += 5;
-	}//修正
-	f32	XX2 = X1 - W / 2;
-	f32 YY1 = Y + Height / 2 - 10;
-	f32 YY2 = Y1 - H / 2;
-
-	if (((YY1 + 10 >= YY2) && (YY1 - H <= YY2)) && ((XX1 + 24 >= XX2) && (XX1 - W <= XX2)))
-	{
-		return true;
-	}
-	else
-	{
-		return 	false;
-	}
-
-}
-
 void PlayerClass::Update() {
-	
-	/*
-	if (InvincibleState > 0) {
-		InvincibleState -= 1;
-	}*/
-	if (nHp > 0) {
+	//**********************************************************************
+	//	描画座標の更新
+	//**********************************************************************
+	DisplayX = X - Display.MoveDistance_x;
+	DisplayY = Y - Display.MoveDistance_y;
 
-		if (StatusStyle != AttackStatus) {
+	if (InvincibleTime != 0) { InvincibleTime -= 1; }  //	無敵時間の処理
+	
+	if (Hp > 0) {
+		if (StatusStyle == AttackStatus) {
+			Attack();
+			
+		}else if (StatusStyle == HitStatus) {
+			Hit();
+		}else {
 			Operation();
 			Jump();
-		}else {
-			Attack();
-		}		
+		}	
+		AllHitTest();		
 	}
 
 }
@@ -1069,9 +1135,9 @@ void PlayerClass::Draw() {
 	
 
 	if (FacedRight){
-		Draw2DCharacter(TexObj, X, Y, Width, Height, Ustart, Vstart, Uwidth, Vheight);
+		Draw2DCharacter(TexObj, DisplayX, DisplayY, Width, Height, Ustart, Vstart, Uwidth, Vheight);
 	}else{
-		DrawPlayerRev(TexObj, X, Y, Width, Height, Ustart, Vstart, Uwidth, Vheight);
+		DrawPlayerRev(TexObj, DisplayX, DisplayY, Width, Height, Ustart, Vstart, Uwidth, Vheight);
 	}
 
 
@@ -1085,64 +1151,72 @@ void PlayerClass::Draw() {
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void	PlayerClass::Operation() {
 	extern DisplayClass Display;
-	
 	//**********************************************************************
-	//	Player 移動
+	//	Player 防御
 	//**********************************************************************
-	if (kpads[0][0].hold & KPAD_BUTTON_UP) {
-		if (FacedRight) {
-			if (X - Width / 2 < Display.width / 4 && Display.Fix_x + Display.MoveDistance_x > 10) {
-				Display.MoveDistance_x -= PLAYERSPEED / 2;
-				MoveHit();
-			}
-			else if (X - Width / 2 > 0) { X -= PLAYERSPEED / 2; MoveHit(); }
-
-
-			if (StatusStyle != JumpStatus) {
-				if (StatusStyle != DefenseStatus) { cnt = 0;  StatusStyle = DefenseStatus; }
+	if (kpads[0][0].hold & KPAD_BUTTON_B){
+		if (StatusStyle != JumpStatus) {
+			if (StatusStyle != DefenseStatus) {
+				cnt = 0; 
+				StatusStyle = DefenseStatus;
 			}
 		}
-		else {
-			if (X - Width / 2 < Display.width / 4 && Display.Fix_x + Display.MoveDistance_x > 10) {
-				Display.MoveDistance_x -= PLAYERSPEED;
-				MoveHit();
-			}
-			else if (X - Width / 2 > 0) {
+		//**********************************************************************
+		//	Player 防御移動
+		//**********************************************************************
+		if (kpads[0][0].hold & KPAD_BUTTON_UP) {
+			/*if (!FacedRight) {
+				FacedRight = !FacedRight;
+				X += 64;
+			}*/
+			X -= PLAYERSPEED/2;
+			MoveHit();
+		}else if (kpads[0][0].hold & KPAD_BUTTON_DOWN) {
+			/*if (FacedRight) {
+				FacedRight = !FacedRight;
+				X -= 64;
+			}*/
+			X += PLAYERSPEED/2;
+			MoveHit();
+		}else{
+			cnt = 0;
+		}
+	}
+	else
+	{
+		//**********************************************************************
+		//	Player 移動
+		//**********************************************************************
+		if (kpads[0][0].hold & KPAD_BUTTON_UP) {
+		if (FacedRight) {
+					FacedRight = !FacedRight;
+					X -= 28;
+				}
 				X -= PLAYERSPEED;
 				MoveHit();
-			}
-			if (StatusStyle != JumpStatus) {
-				if (StatusStyle != RunStatus) {
-					cnt = 0;
-					StatusStyle = RunStatus;
-				}
-			}
-		}							//左移動
-	}
-	if (kpads[0][0].hold & KPAD_BUTTON_DOWN) {
-		if (FacedRight) {
-			if (X + Width / 2 > Display.width * 3 / 4 && Display.MoveDistance_x + Display.width <= Background.width - 10) {
-				Display.MoveDistance_x += PLAYERSPEED;
-				MoveHit();
-			}
-			else if (X + Width / 2 < Display.width) { X += PLAYERSPEED; MoveHit(); }
-
-			if (StatusStyle != JumpStatus) {
-				if (StatusStyle != RunStatus) {
-					cnt = 0;
-					StatusStyle = RunStatus;
-				}
-			}
+				if (StatusStyle != JumpStatus) {
+					if (StatusStyle != RunStatus) {
+						cnt = 0;
+						StatusStyle = RunStatus;
+					}
+				}							//左移動
 		}
-		else {
-			if (X + Width / 2 > Display.width * 3 / 4 && (Display.MoveDistance_x + Display.width) <= Background.width - 10) {
-				Display.MoveDistance_x += PLAYERSPEED / 2;
+		if (kpads[0][0].hold & KPAD_BUTTON_DOWN) {
+		if (!FacedRight) { 
+					FacedRight = !FacedRight;
+					X += 28;
+				}
+				X += PLAYERSPEED;
 				MoveHit();
-			}
-			else if (X + Width / 2 < Display.width) { X += PLAYERSPEED / 2; MoveHit(); }
-			if (StatusStyle != JumpStatus) { if (StatusStyle != DefenseStatus) { cnt = 0;  StatusStyle = DefenseStatus; } }
-		}				//右移動
+				if (StatusStyle != JumpStatus) {
+					if (StatusStyle != RunStatus) {
+						cnt = 0;
+						StatusStyle = RunStatus;
+					}
+				}				//右移動
+		}
 	}
+
 
 	//**********************************************************************
 	//	Player 攻撃
@@ -1151,16 +1225,7 @@ void	PlayerClass::Operation() {
 		if (StatusStyle != JumpStatus) {
 			cnt = 0;
 			StatusStyle = AttackStatus;
-			Display.ShockOn = true;
 		}
-	}
-
-	//**********************************************************************
-	//	Player 転身
-	//**********************************************************************
-	if (kpads[0][0].trig & KPAD_BUTTON_B){
-		FacedRight = !FacedRight;
-		if (StatusStyle == RunStatus) { StatusStyle = DefenseStatus; }
 	}
 
 	//**********************************************************************
@@ -1183,7 +1248,7 @@ void	PlayerClass::Operation() {
 	//**********************************************************************
 	//	停止
 	//**********************************************************************
-	if (kpads[0][0].release & (KPAD_BUTTON_UP | KPAD_BUTTON_DOWN))
+	if (kpads[0][0].release & (KPAD_BUTTON_UP | KPAD_BUTTON_DOWN|KPAD_BUTTON_B))
 	{
 		if (StatusStyle != JumpStatus) {
 			if (StatusStyle != StationStatus) { cnt = 0; StatusStyle = StationStatus; }
@@ -1216,8 +1281,8 @@ void PlayerClass::Jump() {
 		}
 		if (*(ptAnime + cnt) == 18) {
 			for (int i = 0; i < FootingNum; i++) {
-				if (Player.FallHitTest(Footing[i].DisplayX, Footing[i].DisplayY, Footing[i].Width, Footing[i].Height)/*HitTest(, Y, 20, Height, Footing[i].DisplayX, Footing[i].DisplayY, Footing[i].Width, Footing[i].Height)*/) {
-					Y = Footing[i].DisplayY - Footing[i].Height / 2 - Height / 2 + 10;
+				if (Player.FallHitTest(Footing[i].X, Footing[i].Y, Footing[i].Width, Footing[i].Height)) {
+					Y = Footing[i].Y - Footing[i].Height / 2 - Height / 2 + 10;
 
 					JumpCnt = 0;
 					cnt = 0;
@@ -1233,7 +1298,7 @@ void PlayerClass::Jump() {
 		if (Y != Initial_y) {
 			InFall = true;
 			for (int i = 0; i < FootingNum; i++) {
-				if (Player.FallHitTest(Footing[i].DisplayX, Footing[i].DisplayY, Footing[i].Width, Footing[i].Height)) {
+				if (Player.FallHitTest(Footing[i].X, Footing[i].Y, Footing[i].Width, Footing[i].Height)) {
 					InFall = false;
 					break;
 				}
@@ -1286,20 +1351,46 @@ const u8 *Anime_data[6] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, Ani
 	cnt += 1;
 	//if (*(ptAnime + cnt) == 0xff) { cnt = 0; }
 }
-bool PlayerClass::MoveHit() {
-	extern EnemyClass SwordEnemy[10];
-	extern u8 SwordEnemyNum;
-	for (int i = 0; i < SwordEnemyNum; i++){
-		if (SwordEnemy[i].PlayerHit()) {
-			if (HitBox_X() < SwordEnemy[i].HitBox_X()) { X -= PLAYERSPEED; }
-			else {
-				X += PLAYERSPEED;
-			}
-			return true;
-		}
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Player damage受ける開始関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void	PlayerClass::HitOn() {
+	if (Display.ShockOn == 0) {
+		Display.ShockOn = 2;
+	}
+		
+		HitCnt = 0;
+		cnt = 0;
+		StatusStyle = HitStatus;
+		InvincibleTime = 30;
+		JumpStartY = Initial_y;
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Player damage受ける処理関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void PlayerClass::Hit() {
+	HitCnt += 1;
+
+	if (EnemyInPlayerRight) {
+		X -= PLAYERSPEED;
+		BoundaryHitTest();
+	}
+	else
+	{
+		X += PLAYERSPEED;
+		BoundaryHitTest();
+	}
+	Y -= 10 - 0.98f*HitCnt;
+	if (Y > JumpStartY) {
+		Y = JumpStartY;
+		HitCnt = 0;
+		cnt = 0;
+		Hp -= 3;
+		StatusStyle = StationStatus;
+		InDoubleJumpStatus = false;
 	}
 
-	return false;
 }
 
 UIClass *GameUI;
@@ -1364,41 +1455,49 @@ void UIClass::Draw(int HP) {
 
 }
 
-
+//==========================================================================================================
+//		定義
+//==========================================================================================================
 EnemyClass *Enemy;
-EnemyClass SwordEnemy[10];
+EnemyClass SwordEnemy[64];
 u8 SwordEnemyNum;
 const u8 EnemyClass::AnimeRun[64] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0xff };//0xff：終了コード
-const u8 EnemyClass::AnimeAttack[64] = { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0xfe };
+const u8 EnemyClass::AnimeAttack[128] = { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0xfe };
 const u8 EnemyClass::AnimeHit[64] = { 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 0xff };
 
-
+//==========================================================================================================
+//		全体敵行為処理定義
+//==========================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	全体敵初期化関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void	EnemyClass::AllInit() {
-	extern DisplayClass Display;
-
+	//extern DisplayClass Display;
 	TPLGetPalette(&SwordEnemy[0].Tex, ENEMYTEX);
 	TPLGetGXTexObjFromPalette(SwordEnemy[0].Tex, &SwordEnemy[0].TexObj, 0);
 	SwordEnemyNum = 1;
-	/*SwordEnemy[0].Width = 128;
-	SwordEnemy[0].Height = 128;*/
 	SwordEnemy[0].InitialX = 1200;
-	SwordEnemy[0].InitialY = (float)(Display.height - 50 - SwordEnemy[0].Height / 2);
+	SwordEnemy[0].InitialY = (float)(Display.height - InitialPlayerHeight - SwordEnemy[0].Height / 2);
 	SwordEnemy[0].X = SwordEnemy[0].InitialX;
 	SwordEnemy[0].Y = SwordEnemy[0].InitialY;
 	SwordEnemy[0].DisplayX = SwordEnemy[0].X;
 	SwordEnemy[0].DisplayY = SwordEnemy[0].Y;
+	SwordEnemy[0].Hp = 5;
 
 }
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	全体敵更新関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void EnemyClass::AllUpdate() {
-	Display.Update(Background);
-
+	//	剣敵の更新
 	for (int i = 0; i < SwordEnemyNum; i++) {
-		//SwordEnemy[i].Sync(Display);
-		SwordEnemy[i].DisplayX = SwordEnemy[i].X - Display.MoveDistance_x;
-		//SwordEnemy[i].DisplayY = SwordEnemy[i].Y;
 		SwordEnemy[i].Update();
 	}
 }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	全体敵更新関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void	EnemyClass::AllDraw() {
 	for (int i = 0; i < SwordEnemyNum; i++) {
 		if (SwordEnemy[i].Hp > 0) {
@@ -1406,6 +1505,55 @@ void	EnemyClass::AllDraw() {
 		}
 	}
 }
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	全体敵HP判定関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+bool	EnemyClass::AllHaveHp() {
+	for (int i = 0; i < SwordEnemyNum; i++) {
+		if (SwordEnemy[i].Hp > 0) { return true; }
+	}
+
+	return false;
+}
+
+//==========================================================================================================
+//		個体敵行為処理定義（剣敵）
+//==========================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	剣敵更新関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void	EnemyClass::Update() {
+if (Hp > 0) {
+		//**********************************************************************
+		//	描画座標の更新
+		//**********************************************************************
+		DisplayX = X - Display.MoveDistance_x;
+		DisplayY = Y - Display.MoveDistance_y;
+
+		if (InvincibleTime != 0) { InvincibleTime -= 1; }  //	無敵時間の処理
+		switch (ActionMod)
+		{
+		case PatrolMod:
+			Patrol();
+			break;  //	巡回
+		case HitMod:
+			Hit();
+			break;  //	damage受ける
+		case TrackMod:
+			Track();
+			break;  //	敵探す
+		case ReturnMod:
+			Return();
+			break;  //戻る
+		default:
+			break;
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	剣敵Animetion関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void EnemyClass::Animetion() {
 	const u8 *Anime_data[3] = { AnimeRun,AnimeAttack,AnimeHit };
 	const u8 *ptAnime = Anime_data[StatusStyle];
@@ -1421,6 +1569,9 @@ void EnemyClass::Animetion() {
 	cnt += 1;
 }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	剣敵関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void EnemyClass::Draw() {
 	Animetion();
 
@@ -1432,29 +1583,9 @@ void EnemyClass::Draw() {
 	}
 }
 
-
-
-void	EnemyClass::Update() {
-	if (InvincibleTime != 0) { InvincibleTime -= 1; }
-	switch (ActionMod)
-	{
-	case PatrolMod:
-		Patrol();
-		break;
-	case HitMod:
-		Hit();
-		break;
-	case TrackMod:
-		Track();
-		break;
-	case ReturnMod:
-		Return();
-		break;
-	default:
-		break;
-	}
-}
-
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	剣敵damage受ける開始関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void	EnemyClass::HitOn() {
 	HitCnt = 0;
 	cnt = 0;
@@ -1464,10 +1595,13 @@ void	EnemyClass::HitOn() {
 
 }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	剣敵damage受ける処理関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void EnemyClass::Hit() {
 	extern PlayerClass Player;
 	HitCnt += 1;
-	if (Player.X <= DisplayX) {
+	if (Player.X <= X) {
 		X += 4;
 	}
 	else
@@ -1486,37 +1620,39 @@ void EnemyClass::Hit() {
 
 }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	剣敵敵探す関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void EnemyClass::Track() {
 	extern PlayerClass Player;
 	if (StatusStyle != EnemyAttAnime) {
-	/*
-		if (Player.X >= DisplayX) {
-			if (FacedLeft) { FacedLeft = false; }
+		if (Player.X >= X) {
+			if (FacedLeft) { 
+				FacedLeft = false; 
+				X += 32;
+			}
 			if (!PlayerHit()) { X += SWORDENEMYSPEED; }
 		}
 		else {
-			if (!FacedLeft) { FacedLeft = true; }
+			if (!FacedLeft) { 
+				FacedLeft = true; 
+				X -= 32;
+			}
 			if (!PlayerHit()) { X -= SWORDENEMYSPEED; }
 		}
-		*/
-		if (Player.X >= DisplayX) {
-			if (FacedLeft) { FacedLeft = false; }
-			 X += SWORDENEMYSPEED; 
-		}
-		else {
-			if (!FacedLeft) { FacedLeft = true; }
-			X -= SWORDENEMYSPEED; 
-		}
-		if (DisplayX - Player.X > 600 || DisplayX - Player.X < -600) {
+		if (X - Player.X > 600 || X - Player.X < -600) {
 			ActionMod = ReturnMod;
-		}
-		if ((DisplayX - Player.X > 0 && DisplayX - Player.X < 64) || (DisplayX - Player.X<0 && DisplayX - Player.X >-64)) {
+		}  //	Player が離せば戻る
+		if ((X - Player.X > 0 && X - Player.X < 64) || (X - Player.X<0 && X - Player.X >-64)) {
 			StatusStyle = EnemyAttAnime;
 			cnt = 0;
-		}
+		}  
 	}
 }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	剣敵巡回関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void EnemyClass::Patrol() {
 	extern PlayerClass Player;
 
@@ -1525,6 +1661,7 @@ void EnemyClass::Patrol() {
 		if (X < InitialX - 150 || X <= 0) {
 			if (!PlayerHit()) { X += SWORDENEMYSPEED * 2; }
 			FacedLeft = !FacedLeft;
+			X += 32;
 		}
 	}
 	else {
@@ -1532,16 +1669,20 @@ void EnemyClass::Patrol() {
 		if (X > InitialX + 150 || X >= Background.width) {
 			if (!PlayerHit()) { X -= SWORDENEMYSPEED * 2; }
 			FacedLeft = !FacedLeft;
+			X -= 32;
 		}
 	}
 
-	if ((DisplayX - Player.X>0 && DisplayX - Player.X < 300) || (DisplayX - Player.X<0 && DisplayX - Player.X >-300)) {
+	if ((X - Player.X>0 &&X - Player.X < 300) || (X - Player.X<0 &&X - Player.X >-300)) {
 		ActionMod = TrackMod;
-	}
+	}//	Player が接近すると「敵探す」を処理
 
 
 }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	剣敵戻る関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void EnemyClass::Return() {
 	extern PlayerClass Player;
 	if (InitialX >= X) {
@@ -1553,10 +1694,136 @@ void EnemyClass::Return() {
 		if (!PlayerHit()) { X -= SWORDENEMYSPEED; }
 	}
 
-	if ((X - InitialX>0 && DisplayX - X < 30) || (X - InitialX<0 && X - InitialX >-30)) {
+	if ((X - InitialX>0 && X - X < 30) || (X - InitialX<0 && X - InitialX >-30)) {
 		ActionMod = PatrolMod;
 	}
-	if ((DisplayX - Player.X>0 && DisplayX - Player.X < 300) || (DisplayX - Player.X<0 && DisplayX - Player.X >-300)) {
+	if ((X - Player.X>0 && X - Player.X < 300) || (X - Player.X<0 && X - Player.X >-300)) {
 		ActionMod = TrackMod;
 	}
+}
+
+
+//==========================================================================================================
+//		全てのPlayerに関する当たり判定処理定義
+//==========================================================================================================
+void PlayerClass::AllHitTest() {
+	extern DisplayClass Display;  //  仮想camera代入
+//	extern EnemyClass SwordEnemy[64];	// 剣敵代入
+//	extern u8 SwordEnemyNum;	// 剣敵数代入
+	const u8 *Anime_data[6] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit };
+	const u8 *ptAnime = Anime_data[StatusStyle];	// 計算用Player Animation Cnt
+
+	//**********************************************************************
+	//	敵に攻撃の当たり判定
+	//**********************************************************************
+	if (*(ptAnime + cnt) == 33 || *(ptAnime + cnt) == 34) {
+		// 	剣敵に攻撃の当たり判定
+		for (u8 i = 0; i < SwordEnemyNum; i++)
+		{
+			if (SwordEnemy[i].Hp > 0) {
+				if (AttHit(SwordEnemy[i].HitBox_X(), SwordEnemy[i].HitBox_Y(), SwordEnemy[i].HitBox_Wdith, SwordEnemy[i].HitBox_Height)) {
+					if (SwordEnemy[i].InvincibleTime == 0) {
+						StopTime = 5;
+						SwordEnemy[i].HitOn();
+					}  // 無敵時間内ではない
+				}  // 敵に当たる
+			}  // 敵が生きている
+		}
+	}
+
+	//**********************************************************************
+	//	敵にdamage受けの当たり判定
+	//**********************************************************************
+	// 	剣敵にdamage受けの当たり判定
+	for (u8 i = 0; i < SwordEnemyNum; i++)
+	{
+		if (SwordEnemy[i].Hp > 0) {
+			if (SwordEnemy[i].AnimeCnt() == 5 || SwordEnemy[i].AnimeCnt() == 6) {
+				if (HitHit(SwordEnemy[i].AttBox_X(), SwordEnemy[i].AttBox_Y(), SwordEnemy[i].AttBox_Wdith, SwordEnemy[i].AttBox_Height)) {
+					if (InvincibleTime == 0) {
+						if (StatusStyle != HitStatus) {
+							if ((StatusStyle == DefenseStatus) &&( (X < SwordEnemy[i].X && FacedRight) || (X > SwordEnemy[i].X && !FacedRight))) {
+								// 防御すれば
+								if (Display.ShockOn == 0) {Display.ShockOn = 1;}
+								InvincibleTime = 30;
+								Hp -= 1;
+							}else {
+								// 防御していない
+								if (X < SwordEnemy[i].X) {EnemyInPlayerRight = true;}else {
+									EnemyInPlayerRight = false;} // 敵方位判定
+								HitOn();
+							}
+						}
+					}  // 無敵時間内ではない
+				}  // Playerに当たる
+			}  // 敵攻撃Cntの時
+		}  // 敵が生きている
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Player移動当たり判定関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+bool PlayerClass::MoveHit() {
+	extern EnemyClass SwordEnemy[64];  // 剣敵代入
+	extern u8 SwordEnemyNum;	// 剣敵数代入
+	
+	// 	剣敵に当たり判定
+	for (u8 i = 0; i < SwordEnemyNum; i++){
+		if (SwordEnemy[i].Hp > 0) {
+			if (SwordEnemy[i].PlayerHit()) {
+				if (HitBox_X() < SwordEnemy[i].HitBox_X()) { 
+					X -= PLAYERSPEED; 
+				}else {
+					X += PLAYERSPEED;
+				}
+				return true;
+			}
+		}  // 敵が生きている
+	}
+	if(BoundaryHitTest()){ return true; }
+	return false;
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Map当たり判定関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+bool PlayerClass::BoundaryHitTest() {
+	extern ImaginaryBackground Background;
+	if (X - Width / 2 < BleedSize) {
+		X += PLAYERSPEED;
+		return true;
+	}else if (X + Width / 2 > Background.width - BleedSize)	{
+		X -= PLAYERSPEED;
+		return true;
+	}
+	return false;
+
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Player落下判定関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+bool			PlayerClass::FallHitTest(float X1, float Y1, float W, float H)
+{
+	f32 XX1 = X - 24 / 2;
+	if (FacedRight) {
+		XX1 -= 5;
+	}
+	else {
+		XX1 += 5;
+	}//修正
+	f32	XX2 = X1 - W / 2;
+	f32 YY1 = Y + Height / 2 - 10;
+	f32 YY2 = Y1 - H / 2;
+
+	if (((YY1 + 10 >= YY2) && (YY1 - H <= YY2)) && ((XX1 + 24 >= XX2) && (XX1 - W <= XX2)))
+	{
+		return true;
+	}
+	else
+	{
+		return 	false;
+	}
+
 }
