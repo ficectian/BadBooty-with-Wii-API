@@ -32,7 +32,11 @@
 #define	WINTEX	 "WIN.tpl"
 #define	LOSETEX	 "LOSE.tpl"
 #define	TITLETEX	 "title.tpl"
+<<<<<<< HEAD
 #define	TITLEINTTEX		"TitleInit.tpl"
+=======
+#define	TITLEINTTEX		"titleint.tpl"
+>>>>>>> origin/master
 #define HeadBackgroundTex	"HeadBackground.tpl"
 #define HeadTex	"Head.tpl"
 #define PlayerHPTEX	"PlayerHP.tpl"

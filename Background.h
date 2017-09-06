@@ -34,9 +34,13 @@ public:
 	u8 ShockOn;
 	void Init(ImaginaryBackground Background) {
 		X = Background.width/2;
+<<<<<<< HEAD
 		Y = Background.height / 2;
 		MoveDistance_x = Left_X();
 		MoveDistance_y =  Up_Y();
+=======
+		Y = Background.height / 2;;
+>>>>>>> origin/master
 	
 	}
 	void Shock(u8 ShockLv){
@@ -91,10 +95,17 @@ public:
 				if (X > Player.X) {
 					if (Player.StatusStyle == DefenseStatus) {
 						X -= PLAYERSPEED/2;
+<<<<<<< HEAD
 					}/*
 					else if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
 						X = Player.X;
 					}*/
+=======
+					}
+					else if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
+						X = Player.X;
+					}
+>>>>>>> origin/master
 					else{
 						X -= PLAYERSPEED;
 					}
@@ -102,17 +113,29 @@ public:
 				if (X < Player.X) {
 					if (Player.StatusStyle == DefenseStatus) {
 						X += PLAYERSPEED / 2;
+<<<<<<< HEAD
 					}/*
 					else if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
 						X = Player.X;
 					}*/
+=======
+					}
+					else if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
+						X = Player.X;
+					}
+>>>>>>> origin/master
 					else {
 						X += PLAYERSPEED;
 					}
 				}
 			}
+<<<<<<< HEAD
 			if (Player.Y + InitialPlayerHeight - height > BleedSize && Player.Y + InitialPlayerHeight < Background.height - BleedSize) {
 				if (Y > Player.Y  - height / 2 + InitialPlayerHeight + Player.Height / 2) {
+=======
+			if (Player.Y - height / 2 > BleedSize && Player.Y + height / 2 < Background.height - BleedSize) {
+				if (Y > Player.Y - height / 2 + InitialPlayerHeight + Player.Height / 2) {
+>>>>>>> origin/master
 					if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
 						Y = Player.Y - height / 2 + InitialPlayerHeight + Player.Height / 2;
 					}else{

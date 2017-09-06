@@ -26,12 +26,19 @@ const u8 PlayerClass::AnimeClimb[64] = { 40,40,40,40,40,40,41,41,41,41,42,42,42,
 
 void PlayerClass::Init() {
 	extern DisplayClass Display;
+<<<<<<< HEAD
 	extern ImaginaryBackground Background;
+=======
+>>>>>>> origin/master
 
 	TPLGetPalette(&Player.Tex, PLAYERTEX);
 	TPLGetGXTexObjFromPalette(Player.Tex, &Player.TexObj, 0);   //2017.5.19’Ç‰Á
 	Initial_x = (f32)100+Display.width / 2;
+<<<<<<< HEAD
 	Initial_y = (f32)(Background.height - InitialPlayerHeight - 64);
+=======
+	Initial_y = (f32)(Display.height - InitialPlayerHeight - 64);
+>>>>>>> origin/master
 	X = Initial_x;
 	Y = Initial_y;
 	DisplayX = X;

@@ -35,7 +35,11 @@ void	EnemyClass::AllInit() {
 	TPLGetGXTexObjFromPalette(SwordEnemy[0].Tex, &SwordEnemy[0].TexObj, 0);
 	SwordEnemyNum = 1;
 	SwordEnemy[0].InitialX = 1200;
+<<<<<<< HEAD
 	SwordEnemy[0].InitialY = (float)(Background.height - InitialPlayerHeight - SwordEnemy[0].Height / 2);
+=======
+	SwordEnemy[0].InitialY = (float)(Display.height - InitialPlayerHeight - SwordEnemy[0].Height / 2);
+>>>>>>> origin/master
 	SwordEnemy[0].X = SwordEnemy[0].InitialX;
 	SwordEnemy[0].Y = SwordEnemy[0].InitialY;
 	SwordEnemy[0].DisplayX = SwordEnemy[0].X;

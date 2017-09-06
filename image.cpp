@@ -54,7 +54,11 @@ switch (Status)
 		Title.DisplayY = Title.Y;
 		Title.X = Display.width/2;
 		Title.DisplayX = Title.X;
+<<<<<<< HEAD
 		Titleint.Width = 200;
+=======
+		Titleint.Width = 201;
+>>>>>>> origin/master
 		Titleint.Height = 30;
 		Titleint.X = Display.width - 50 - Titleint.Width / 2;
 		Titleint.Y = Display.height - 143 - Titleint.Height / 2;
@@ -79,7 +83,11 @@ switch (Status)
 	for (int i = 0; i < LandNum; i++) {
 		LandPixel[i].Height = 160;
 		LandPixel[i].Width = 60;
+<<<<<<< HEAD
 		LandPixel[i].Y = Background.height - LandPixel[i].Height / 2;
+=======
+		LandPixel[i].Y = SCREEN_HEIGHT - LandPixel[i].Height / 2;
+>>>>>>> origin/master
 		LandPixel[i].DisplayY = LandPixel[i].Y;
 		LandPixel[i].X = LandPixel[i].Width / 2 + i*LandPixel[i].Width;
 		LandPixel[i].DisplayX = LandPixel[i].X;
@@ -89,7 +97,11 @@ switch (Status)
 	for (int i = 0; i < GrassNum; i++) {
 		Grass[i].Height = 120;
 		Grass[i].Width = 60;
+<<<<<<< HEAD
 		Grass[i].Y = Background.height - Grass[i].Height / 2;
+=======
+		Grass[i].Y = SCREEN_HEIGHT - Grass[i].Height / 2;
+>>>>>>> origin/master
 		Grass[i].DisplayY = Grass[i].Y;
 		Grass[i].X = Grass[i].Width / 2 + i*Grass[i].Width;
 		Grass[i].DisplayX = Grass[i].X;
@@ -98,6 +110,7 @@ switch (Status)
 	Scren.Height = SCREEN_HEIGHT;
 	Scren.X = Scren.Width / 2;
 	Scren.Y = Scren.Height / 2;
+<<<<<<< HEAD
 	FootingNum = 3;
 	Footing[0].X = 1024;
 	Footing[0].Y = Background.height - 220;
@@ -105,13 +118,23 @@ switch (Status)
 	Footing[1].Y = Background.height - 270;
 	Footing[2].X = 1200;
 	Footing[2].Y = Background.height - 760;
+=======
+	FootingNum = 2;
+	Footing[0].X = 1024;
+	Footing[0].Y = SCREEN_HEIGHT - 220;
+	Footing[1].X = 1224;
+	Footing[1].Y = SCREEN_HEIGHT - 270;
+>>>>>>> origin/master
 	for (int i = 0; i < FootingNum; i++) {
 		Footing[i].Height = 20;
 		Footing[i].Width = 100;
 		Footing[i].DisplayY = Footing[i].Y;
 		Footing[i].DisplayX = Footing[i].X;
 	}
+<<<<<<< HEAD
 	Footing[2].Width = 400;
+=======
+>>>>>>> origin/master
 
 		break;
 	default:
