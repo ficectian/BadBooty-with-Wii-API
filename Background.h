@@ -34,13 +34,9 @@ public:
 	u8 ShockOn;
 	void Init(ImaginaryBackground Background) {
 		X = Background.width/2;
-<<<<<<< HEAD
 		Y = Background.height / 2;
 		MoveDistance_x = Left_X();
 		MoveDistance_y =  Up_Y();
-=======
-		Y = Background.height / 2;;
->>>>>>> origin/master
 	
 	}
 	void Shock(u8 ShockLv){
@@ -95,17 +91,10 @@ public:
 				if (X > Player.X) {
 					if (Player.StatusStyle == DefenseStatus) {
 						X -= PLAYERSPEED/2;
-<<<<<<< HEAD
 					}/*
 					else if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
 						X = Player.X;
 					}*/
-=======
-					}
-					else if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
-						X = Player.X;
-					}
->>>>>>> origin/master
 					else{
 						X -= PLAYERSPEED;
 					}
@@ -113,29 +102,17 @@ public:
 				if (X < Player.X) {
 					if (Player.StatusStyle == DefenseStatus) {
 						X += PLAYERSPEED / 2;
-<<<<<<< HEAD
 					}/*
 					else if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
 						X = Player.X;
 					}*/
-=======
-					}
-					else if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
-						X = Player.X;
-					}
->>>>>>> origin/master
 					else {
 						X += PLAYERSPEED;
 					}
 				}
 			}
-<<<<<<< HEAD
 			if (Player.Y + InitialPlayerHeight - height > BleedSize && Player.Y + InitialPlayerHeight < Background.height - BleedSize) {
 				if (Y > Player.Y  - height / 2 + InitialPlayerHeight + Player.Height / 2) {
-=======
-			if (Player.Y - height / 2 > BleedSize && Player.Y + height / 2 < Background.height - BleedSize) {
-				if (Y > Player.Y - height / 2 + InitialPlayerHeight + Player.Height / 2) {
->>>>>>> origin/master
 					if (Player.StatusStyle == JumpStatus||Player.StatusStyle == HitStatus) {
 						Y = Player.Y - height / 2 + InitialPlayerHeight + Player.Height / 2;
 					}else{
@@ -182,7 +159,7 @@ public:
 	void Init();
 	void Update();
 	void TitleInit();
-	void TitleDraw(int);
+	void TitleDraw(bool);
 	void BackDraw();
 	void UpDraw(int);
 	void Sync(DisplayClass Display) {
@@ -237,17 +214,36 @@ private:
 	f32 Uwidth;
 	f32 Vheight;
 };
-//typedef struct {
-//	TPLPalettePtr Tex;
-//	GXTexObj TexObj;
-//	u8		Flag;
-//	f32	X;
-//	f32	DefX;
-//	f32	Y;
-//	bool	Disp;
-//	bool notshooting;
-//	void Init(u8);
-//	void Update(u8);
-//	void Hit(u8);
-//	void Draw();
+class StairClass {
+public:
 
+	f32	X;
+	f32	Y;
+	f32 DisplayX;
+	f32 DisplayY;
+	void Init();
+	void Update();
+	void Draw();
+	StairClass() {
+		Tex = NULL;
+		Ustart = 0.0f;
+		Vstart = 0.0f;
+		Uwidth = 1.0f;
+		Vheight = 1.0f;
+		Height = 40;
+		Width = 50;
+	}
+	void Sync(DisplayClass Display) {
+		DisplayX = X - Display.MoveDistance_x;
+		DisplayY = Y - Display.MoveDistance_y;
+	}
+	f32 Width;
+	f32 Height;
+private:
+	TPLPalettePtr Tex;
+	GXTexObj TexObj;
+	f32 Ustart;
+	f32 Vstart;
+	f32 Uwidth;
+	f32 Vheight;
+};

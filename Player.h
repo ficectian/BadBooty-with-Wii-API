@@ -11,7 +11,8 @@ enum {
 	DefenseStatus,
 	AttackStatus,
 	HitStatus,
-	ClimbStatus
+	ClimbStatus,
+	EvilHitStatus
 };
 enum {
 	EnemyRunAnime,
@@ -23,7 +24,8 @@ enum {
 	PatrolMod,
 	HitMod,
 	TrackMod,
-	ReturnMod
+	ReturnMod,
+	EvilMod
 };
 
 //=========================================
@@ -53,6 +55,19 @@ public:
 	}
 	f32 AttBox_Wdith;
 	f32 AttBox_Height;
+	f32 EvilBox_Wdith;
+	f32 EvilBox_Height;
+	f32 EvilBox_X(){
+		if (FacedRight) {
+			return (f32)X - 5;
+		}
+		else {
+			return (f32)X -64;
+		}
+	}
+	f32 EvilBox_Y() {
+		return (f32)Y - 32;
+	}
 	f32 HitBox_X() {
 		if (FacedRight) {
 			return (f32)X - 43;
@@ -70,7 +85,7 @@ public:
 	void Init();
 	void Update();
 	void Draw();
-	bool FallHitTest(float, float, float, float);
+	bool FallHitTest(f32, f32, f32, f32);
 	void Operation();
 	void Jump();
 	void Attack();
@@ -78,9 +93,11 @@ public:
 	bool HitStair();
 	void AllHitTest();
 	bool BoundaryHitTest();
+	bool FacedRight;
 	void Climb();
-		u8 AnimeCnt(s8 n) {
-		const u8  *Anime_data[7] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb};
+	void EvilHit();
+	u8 AnimeCnt(s8 n) {
+		const u8  *Anime_data[8] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb,AnimeEvilHit};
 		const u8 *ptAnime = Anime_data[StatusStyle];
 		return *(ptAnime + cnt+n);
 	}
@@ -103,6 +120,8 @@ public:
 		AttBox_Height = 69.0f;
 		HitBox_Wdith = 43.0f;
 		HitBox_Height = 111.0f;
+		EvilBox_Wdith = 69.0f;
+		EvilBox_Height = 42.0f;
 		StopTime = 0;
 		EnemyInPlayerRight = false;
 		 
@@ -129,12 +148,12 @@ private:
 	static const u8 AnimeAttack[64]; 
 	static const u8 AnimeHit[64]; 
 	static	const u8 AnimeClimb[64];
+	static	const u8 AnimeEvilHit[64];
 	//static 	const u8 *Anime_data[6];// = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit };
 
 	u8 cnt;
 	u8 JumpCnt;
 
-	bool FacedRight;
 	f32 Initial_x;
 	f32 Initial_y;
 	bool InFall;
@@ -142,6 +161,16 @@ private:
 	bool MoveHit();
 	bool AttHit(f32 x, f32 y, f32 w, f32 h) {
 		if (((AttBox_Y() + AttBox_Height >= y) && (AttBox_Y() - h <= y)) && ((AttBox_X() + AttBox_Wdith >= x) && (AttBox_X() - w <= x)))
+		{
+			return true;
+		}
+		else
+		{
+			return 	false;
+		}
+	}
+	bool EvilHit(float x, float y, float w, float h) {
+		if (((EvilBox_Y() + EvilBox_Height >= y) && (EvilBox_Y() - h <= y)) && ((EvilBox_X() + EvilBox_Wdith >= x) && (EvilBox_X() - w <= x)))
 		{
 			return true;
 		}
@@ -204,6 +233,7 @@ public:
 	f32 AttBox_Wdith;
 	f32 AttBox_Height;
 	int Hp;	//‘Ì—Í
+	int MaxHp;
 	void AllInit();
 	void AllUpdate();
 	void AllDraw();
@@ -213,6 +243,7 @@ public:
 	//}
 	u8 ActionMod;
 	void HitOn();
+	void EvilOn();
 	bool FacedLeft;
 	u8 InvincibleTime;
 	void Track();
@@ -233,7 +264,8 @@ public:
 		Width = 128;
 		Height = 128;
 		InvincibleTime = 0;
-		Hp = 5;
+		MaxHp = 5;
+		Hp = 0;
 		Ustart = 0.0f;
 		Uwidth = (f32)1 / 4;
 		Vstart = 0.0f;
@@ -273,6 +305,7 @@ private:
 	void Update();
 	void Draw();
 	void Hit();
+	void Evil();
 	u8 HitCnt;
 	static const u8 AnimeRun[64]; 
 	static const u8 AnimeAttack[128];  
@@ -284,4 +317,5 @@ private:
 
 
 
+bool	HitTest(f32 X1, f32 Y1, f32 W1, f32 H1, f32 X2, f32 Y2, f32 W2, f32 H2);
 

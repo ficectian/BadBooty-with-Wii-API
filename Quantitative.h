@@ -32,11 +32,8 @@
 #define	WINTEX	 "WIN.tpl"
 #define	LOSETEX	 "LOSE.tpl"
 #define	TITLETEX	 "title.tpl"
-<<<<<<< HEAD
+#define	TITLEOPTEX	 "Operation.tpl"
 #define	TITLEINTTEX		"TitleInit.tpl"
-=======
-#define	TITLEINTTEX		"titleint.tpl"
->>>>>>> origin/master
 #define HeadBackgroundTex	"HeadBackground.tpl"
 #define HeadTex	"Head.tpl"
 #define PlayerHPTEX	"PlayerHP.tpl"
@@ -45,3 +42,6 @@
 #define	GRASSTEX "Grass.tpl"
 #define LANDTEX	"Land.tpl"
 #define ENEMYTEX "Enemy.tpl"
+#define STAIRTEX "Ladder.tpl"
+#define ENEMYHPTEX	"EnemyHP.tpl"
+#define ENEMYHPBGTEX "EnemyHPBackground.tpl"

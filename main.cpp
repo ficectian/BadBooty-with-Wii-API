@@ -6,20 +6,13 @@
 #include "Quantitative.h"
 #include "Player.h"
 #include "Background.h"
-<<<<<<< HEAD
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //		グローバル変数
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-=======
->>>>>>> origin/master
 
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/master
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //		プロトタイプ宣言
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -33,6 +26,11 @@ extern EnemyClass *Enemy;
 
 u8 fcnt;
 u8 Status;
+bool LoopWaiting;
+u8 LoopFPS = 0;
+u8 GameLoop = 0;
+bool LookOP = false;
+bool Inited = false;
 //u8 Anime_style;// = 0;
 //const u8 *Animept = Anime_data[Anime_style];
 //	サウンド用変数
@@ -118,18 +116,15 @@ switch (Status)
 		fcnt = 0;
 		break;
 	case GAME_START:
-<<<<<<< HEAD
+		LoopWaiting = false;
 		Background.height = 1500;
 		Background.width = 3000;
-=======
-		Background.height = 1024;
-		Background.width = 2048;
->>>>>>> origin/master
 		Display.Init(Background);
 		Image->Init();
 		Player.Init(); //player初期化
 		Enemy->AllInit();
 		GameUI->Init();
+		Inited = true;
 		Status = GAME_PLAY;
 
 		
@@ -150,8 +145,13 @@ void GameUpdate(){
 	case TITLE:
 		Image->Update();
 		if (kpads[0][0].trig & KPAD_BUTTON_A){
-			Status = GAME_START;
-			WiiMainInit();
+			if(!LookOP)
+			{
+				LookOP = true;
+			}else{
+				Status = GAME_START;
+				WiiMainInit();
+			}
 		}
 		break;
 		/*
@@ -176,8 +176,24 @@ void GameUpdate(){
 			Player.StopTime -= 1;
 		}
 		
-		if (Player.Hp <= 0) { Status = TITLE; }
-		if(!Enemy->AllHaveHp()) { Status = TITLE; }
+		if (Player.Hp <= 0) {  
+			GameLoop = 0; 
+			Enemy->AllInit();
+			Status = TITLE;
+		}
+		if(!Enemy->AllHaveHp()) {  LoopWaiting = true; }
+		if(LoopFPS >=180){
+			GameLoop += 1;
+			Enemy->AllInit();
+			LoopWaiting = false;
+			LoopFPS = 0;
+		}
+		if (LoopWaiting) { LoopFPS += 1; }
+		if (GameLoop > 3) {
+			GameLoop = 0;
+			LookOP = false;
+			Status = TITLE;
+		}
 		break;
 	case GAME_OVER:
 		
@@ -197,7 +213,7 @@ void GameDraw(){
 
 	switch (Status){
 	case TITLE:
-		Image->TitleDraw(fcnt);
+		Image->TitleDraw(LookOP);
 		break;
 	case GAME_PLAY:
 		/*

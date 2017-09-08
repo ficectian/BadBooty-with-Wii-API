@@ -13,6 +13,8 @@
 //==========================================================================================================
 PlayerClass Player;
 extern DisplayClass Display;
+extern bool Inited;
+
 //ENEMY Enemy[ENEMYNUM];
 //SHOOT Shoot[SHOOTNUM];
 //ENEMYSHOOT EnemyShoot[ENEMYSHOOTMAX];
@@ -23,29 +25,28 @@ const u8 PlayerClass::AnimeDefense[64] ={ 24,24,24,24,24,24,24,24,24,24,24,24,25
 const u8 PlayerClass::AnimeAttack[64] = { 32, 32, 32, 32, 32, 32, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 0xff };//0xff：終了コード
 const u8 PlayerClass::AnimeHit[64] = { 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0xff };//0xff：終了コード
 const u8 PlayerClass::AnimeClimb[64] = { 40,40,40,40,40,40,41,41,41,41,42,42,42,42,42,42,43,43,43,43,0xff };
+const u8 PlayerClass::AnimeEvilHit[64] = { 48,48,48,48,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,50,50,50,50,50,50,50,50,50,51,51,51,51,51,51,51,51,51,51,51,51,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,48,48,48,48,48,48,0xff };
 
 void PlayerClass::Init() {
 	extern DisplayClass Display;
-<<<<<<< HEAD
 	extern ImaginaryBackground Background;
-=======
->>>>>>> origin/master
+	if(!Inited)
+	{
+		TPLGetPalette(&Player.Tex, PLAYERTEX);
+		TPLGetGXTexObjFromPalette(Player.Tex, &Player.TexObj, 0);   //2017.5.19追加
+		Initial_x = (f32)100+Display.width / 2;
+		Initial_y = (f32)(Background.height - InitialPlayerHeight - 64);
+		MaxHp = 28;
+	}
 
-	TPLGetPalette(&Player.Tex, PLAYERTEX);
-	TPLGetGXTexObjFromPalette(Player.Tex, &Player.TexObj, 0);   //2017.5.19追加
-	Initial_x = (f32)100+Display.width / 2;
-<<<<<<< HEAD
-	Initial_y = (f32)(Background.height - InitialPlayerHeight - 64);
-=======
-	Initial_y = (f32)(Display.height - InitialPlayerHeight - 64);
->>>>>>> origin/master
+	
 	X = Initial_x;
 	Y = Initial_y;
 	DisplayX = X;
 	DisplayY = Y;
 //	Width = 128;
 //	Height = 128;
-	MaxHp = 28;
+	
 	Hp = MaxHp;
 	InvincibleState = 0;
 	/*
@@ -81,6 +82,8 @@ void PlayerClass::Update() {
 			}
 			else if (StatusStyle == HitStatus) {
 				Hit();
+			}else if (StatusStyle == EvilHitStatus) {
+				EvilHit();
 			}
 			else {
 				Operation();
@@ -191,6 +194,16 @@ void	PlayerClass::Operation() {
 			StatusStyle = AttackStatus;
 		}
 	}
+	
+		//**********************************************************************
+	//	Player 攻撃
+	//**********************************************************************
+	if (kpads[0][0].trig & KPAD_BUTTON_A){
+		if (StatusStyle != JumpStatus) {
+			cnt = 0;
+			StatusStyle = EvilHitStatus;
+		}
+	}
 
 	//**********************************************************************
 	//	Player 　jump
@@ -226,8 +239,7 @@ void	PlayerClass::Operation() {
 void PlayerClass::Jump() {
 	extern u8 FootingNum;
 	extern ImageClass Footing[256];
-const u8 *Anime_data[7] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb};
-
+	const u8 *Anime_data[8] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb,AnimeEvilHit};
 	if (StatusStyle == JumpStatus) {
 		JumpCnt += 1;
 		//float vg = 10 - 0.98f*fcnt;
@@ -282,8 +294,7 @@ const u8 *Anime_data[7] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, Ani
 //	Player 攻撃処理関数定義
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void PlayerClass::Attack() {
-const u8 *Anime_data[7] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb};
-
+const u8 *Anime_data[8] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb,AnimeEvilHit};
 	const u8 *ptAnime = Anime_data[StatusStyle];
 	cnt += 1;
 	if (*(ptAnime + cnt) == 0xff) {
@@ -295,10 +306,24 @@ const u8 *Anime_data[7] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, Ani
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Player EvilHit処理関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void PlayerClass::EvilHit() {
+	const u8 *Anime_data[8] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb,AnimeEvilHit};
+	const u8 *ptAnime = Anime_data[StatusStyle];
+	cnt += 1;
+	if (*(ptAnime + cnt) == 0xff) {
+		cnt = 0;
+		StatusStyle = StationStatus;
+	}
+	else { cnt -= 1; }
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Player Animetion処理関数定義
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void PlayerClass::Animetion() {
-const u8 *Anime_data[7] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb};
+const u8 *Anime_data[8] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb,AnimeEvilHit};
 
 	const u8 *ptAnime = Anime_data[StatusStyle];
 	if (*(ptAnime + cnt) == 0xff) {
@@ -363,41 +388,102 @@ void PlayerClass::Hit() {
 //	Player 処理関数定義
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void PlayerClass::Climb() {
-const u8 *Anime_data[7] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb};
+	const u8 *Anime_data[8] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb,AnimeEvilHit};
 	extern u8 FootingNum;
 	extern ImageClass Footing[256];
+	extern StairClass StairL[128];
+	extern u8 StairNum;
+	bool ladderHit = false;
 	//**********************************************************************
 	//	Player 登る
 	//**********************************************************************
 	if (StatusStyle != ClimbStatus) {
-		if (kpads[0][0].hold & KPAD_BUTTON_RIGHT){
+		for (u8 i = 0; i < StairNum; i++) {
+					if (HitTest(X,Y,Width,Height,StairL[i].X,StairL[i].Y,StairL[i].Width,StairL[i].Height)){
+						ladderHit = true;
+					}
+		}
+		if (ladderHit) {
+			if (kpads[0][0].hold & KPAD_BUTTON_RIGHT){
 			cnt = 0; 
 			StatusStyle = ClimbStatus; 
 			Y -= 20;
+			X = StairL[0].X;
 		}
 		if (kpads[0][0].hold & KPAD_BUTTON_LEFT) {
 			cnt = 0; 
 			StatusStyle = ClimbStatus; 
 			Y += 20;
+			X = StairL[0].X;
 		}
+		}
+	
 	}else{
 			if (kpads[0][0].hold & KPAD_BUTTON_RIGHT) {
 			cnt += 1;
 			if ((AnimeCnt(0) != AnimeCnt(-1)) && ((AnimeCnt(0) == 40) || (AnimeCnt(0) == 42) || (AnimeCnt(0) == 0xff))) {
-				Y -= 20;
+				if ((Y - Height / 2) > StairL[0].Y) {
+						Y -= 30;
+				}
 			}
 		}
 			if (kpads[0][0].hold & KPAD_BUTTON_LEFT){
 			cnt += 1;
 			if ((AnimeCnt(0) != AnimeCnt(-1)) && ((AnimeCnt(0) == 40) || (AnimeCnt(0) == 42) || (AnimeCnt(0) == 0xff))) {
-				Y += 20;
+				if ((Y + Height / 2) < StairL[StairNum-1].Y) {
+						Y += 35;
+				}else {
+					ladderHit = false;
+					if (Y != Initial_y /*&& !HitStair()*/) {
+						InFall = true;
+						for (int i = 0; i < FootingNum; i++) {
+							if (Player.FallHitTest(Footing[i].X, Footing[i].Y, Footing[i].Width, Footing[i].Height)) {
+								InFall = false;
+								break;
+							}
+						}
+						if (InFall) {
+							JumpStartY = Initial_y;
+							JumpCnt = 16;
+							cnt = 16;
+							StatusStyle = JumpStatus;
+						}
+					}
+				}
 			}
 		}
 
 		//落下
-		
+		/*
 		if ((kpads[0][0].hold & KPAD_BUTTON_UP)||(kpads[0][0].hold & KPAD_BUTTON_DOWN)||(kpads[0][0].hold & KPAD_BUTTON_2)){
 			if (Y != Initial_y ) {
+				InFall = true;
+				for (int i = 0; i < FootingNum; i++) {
+					if (Player.FallHitTest(Footing[i].X, Footing[i].Y, Footing[i].Width, Footing[i].Height)) {
+						InFall = false;
+						break;
+					}
+				}
+				if (InFall) {
+					JumpStartY = Initial_y;
+					JumpCnt = 16;
+					cnt = 16;
+					StatusStyle = JumpStatus;
+				}
+			}
+		}
+		*/
+		if ((kpads[0][0].hold & KPAD_BUTTON_2)) {
+			ladderHit = false;
+			Y += 30;
+			JumpStartY = Initial_y;
+			JumpCnt = 0;
+			cnt = 0;
+			InDoubleJumpStatus = false;
+			StatusStyle = JumpStatus;
+		}else if ((kpads[0][0].hold & KPAD_BUTTON_UP)||(kpads[0][0].hold & KPAD_BUTTON_DOWN)) {
+			ladderHit = false;
+			if (Y != Initial_y /*&& !HitStair()*/) {
 				InFall = true;
 				for (int i = 0; i < FootingNum; i++) {
 					if (Player.FallHitTest(Footing[i].X, Footing[i].Y, Footing[i].Width, Footing[i].Height)) {

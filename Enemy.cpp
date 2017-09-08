@@ -16,11 +16,13 @@
 //==========================================================================================================
 extern DisplayClass Display;
 extern ImaginaryBackground Background;
+extern bool Inited;
 EnemyClass *Enemy;
 EnemyClass SwordEnemy[64];
 u8 SwordEnemyNum;
 const u8 EnemyClass::AnimeRun[64] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0xff };//0xff：終了コード
-const u8 EnemyClass::AnimeAttack[128] = { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0xfe };
+const u8 EnemyClass::AnimeAttack[128] = { 4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,6,6,6,6,6,6,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,0xfe };
+	
 const u8 EnemyClass::AnimeHit[64] = { 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 0xff };
 
 //==========================================================================================================
@@ -31,20 +33,64 @@ const u8 EnemyClass::AnimeHit[64] = { 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void	EnemyClass::AllInit() {
 	//extern DisplayClass Display;
-	TPLGetPalette(&SwordEnemy[0].Tex, ENEMYTEX);
-	TPLGetGXTexObjFromPalette(SwordEnemy[0].Tex, &SwordEnemy[0].TexObj, 0);
-	SwordEnemyNum = 1;
-	SwordEnemy[0].InitialX = 1200;
-<<<<<<< HEAD
-	SwordEnemy[0].InitialY = (float)(Background.height - InitialPlayerHeight - SwordEnemy[0].Height / 2);
-=======
-	SwordEnemy[0].InitialY = (float)(Display.height - InitialPlayerHeight - SwordEnemy[0].Height / 2);
->>>>>>> origin/master
-	SwordEnemy[0].X = SwordEnemy[0].InitialX;
-	SwordEnemy[0].Y = SwordEnemy[0].InitialY;
-	SwordEnemy[0].DisplayX = SwordEnemy[0].X;
-	SwordEnemy[0].DisplayY = SwordEnemy[0].Y;
-	SwordEnemy[0].Hp = 5;
+	extern u8 GameLoop;
+	SwordEnemyNum = 3;
+		if(!Inited)
+		{
+			TPLGetPalette(&SwordEnemy[0].Tex, ENEMYTEX);
+			TPLGetGXTexObjFromPalette(SwordEnemy[0].Tex, &SwordEnemy[0].TexObj, 0);
+			for(u8 i = 0;i<SwordEnemyNum;i++)
+			{
+				SwordEnemy[i].TexObj=SwordEnemy[0].TexObj;
+			}
+		}
+	
+	
+	for(u8 i=0 ;i<SwordEnemyNum ;i++)
+	{
+		SwordEnemy[i].Hp = 0;
+	}
+	switch (GameLoop)
+	{
+	case 0:
+		SwordEnemy[0].InitialX = 1200;
+		SwordEnemy[0].InitialY =  (float)(Background.height - InitialPlayerHeight - SwordEnemy[0].Height / 2);
+		SwordEnemy[0].X = SwordEnemy[0].InitialX;
+		SwordEnemy[0].Y = SwordEnemy[0].InitialY;
+		SwordEnemy[0].DisplayX = SwordEnemy[0].X;
+		SwordEnemy[0].DisplayY = SwordEnemy[0].Y;
+		SwordEnemy[0].MaxHp = 3;
+		SwordEnemy[0].Hp = SwordEnemy[0].MaxHp;
+		SwordEnemy[0].StatusStyle = EnemyRunAnime;
+		SwordEnemy[0].ActionMod = PatrolMod;
+		break;
+	case 1:
+		
+		SwordEnemy[1].InitialX = 500;
+		SwordEnemy[1].InitialY = (float)(Background.height - InitialPlayerHeight - SwordEnemy[0].Height / 2);
+		SwordEnemy[1].X = SwordEnemy[1].InitialX;
+		SwordEnemy[1].Y = SwordEnemy[1].InitialY;
+		SwordEnemy[1].DisplayX = SwordEnemy[1].X;
+		SwordEnemy[1].DisplayY = SwordEnemy[1].Y;
+		SwordEnemy[1].Hp = SwordEnemy[1].MaxHp;
+		SwordEnemy[1].ActionMod = PatrolMod;
+		SwordEnemy[1].StatusStyle = EnemyRunAnime;
+		break;
+	case 3:
+		SwordEnemy[2].InitialX = 1000;
+		SwordEnemy[2].InitialY = (float)(Background.height - InitialPlayerHeight - SwordEnemy[0].Height / 2);
+		SwordEnemy[2].X = SwordEnemy[2].InitialX;
+		SwordEnemy[2].Y = SwordEnemy[2].InitialY;
+		SwordEnemy[2].DisplayX = SwordEnemy[2].X;
+		SwordEnemy[2].DisplayY = SwordEnemy[2].Y;
+		SwordEnemy[2].MaxHp = 10;
+		SwordEnemy[2].Hp = SwordEnemy[2].MaxHp;
+		SwordEnemy[2].ActionMod = PatrolMod;
+		SwordEnemy[2].StatusStyle = EnemyRunAnime;
+		
+	default:
+		break;
+	}
 
 }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -107,6 +153,9 @@ if (Hp > 0) {
 		case ReturnMod:
 			Return();
 			break;  //戻る
+		case EvilMod:
+			Evil();
+			break;
 		default:
 			break;
 		}
@@ -181,7 +230,37 @@ void EnemyClass::Hit() {
 	}
 
 }
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	剣敵damage受ける開始関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void	EnemyClass::EvilOn() {
+	extern PlayerClass Player;
+	HitCnt = 0;
+	cnt = 0;
+	StatusStyle = EnemyHitAnime;
+	ActionMod = EvilMod;
+	InvincibleTime = 30;
+	if (Player.FacedRight) {
+		X = Player.X + 49 - 16;
+	}else{
+		X = Player.X - 49 + 16;
+	}
+	
+	Y = Player.Y -16;
+}
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	剣敵EvilHit受ける処理関数定義
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void EnemyClass::Evil() {
+	extern PlayerClass Player;
+	HitCnt += 1;
+	if (HitCnt > 15) {
+		HitCnt = 0;
+		Hp = 0;
+		ActionMod = PatrolMod;
+	}
+}
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //	剣敵敵探す関数定義
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------

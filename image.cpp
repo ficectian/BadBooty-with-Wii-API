@@ -18,11 +18,13 @@
 extern ImaginaryBackground Background;	// âºëzîwåiñ êœë„ì¸
 extern DisplayClass Display;	// âºëzcameraë„ì¸
 extern u8 Status;	// game Modeë„ì¸
+extern StairClass *Stair;
 
 ImageClass *Image;
 ImageClass Scren;
 //ImageClass Land;
 ImageClass Title;
+ImageClass TitleOP;
 ImageClass Titleint;
 ImageClass Grass[128];
 ImageClass LandPixel[256];
@@ -34,7 +36,7 @@ ImaginaryBackground Background;
 DisplayClass Display;
 bool Bingging;
 f32 LOGOBigging;
-
+extern bool Inited;
 
 void ImageClass::Init() {
 switch (Status)
@@ -43,10 +45,15 @@ switch (Status)
 		//	TitleâÊñ èâä˙âª
 		//**********************************************************************
 	case TITLE:
-		TPLGetPalette(&Title.Tex, TITLETEX);
+	if(!Inited)
+	{
+			TPLGetPalette(&Title.Tex, TITLETEX);
 		TPLGetGXTexObjFromPalette(Title.Tex, &Title.TexObj, 0);
 		TPLGetPalette(&Titleint.Tex, TITLEINTTEX);
 		TPLGetGXTexObjFromPalette(Titleint.Tex, &Titleint.TexObj, 0);
+		TPLGetPalette(&TitleOP.Tex, TITLEOPTEX);
+		TPLGetGXTexObjFromPalette(TitleOP.Tex, &TitleOP.TexObj, 0);
+
 
 		Title.Height = Display.height;
 		Title.Width = Display.width;
@@ -54,19 +61,27 @@ switch (Status)
 		Title.DisplayY = Title.Y;
 		Title.X = Display.width/2;
 		Title.DisplayX = Title.X;
-<<<<<<< HEAD
+		
+		TitleOP.Height = Display.height;
+		TitleOP.Width = Display.width;
+		TitleOP.Y = Display.height / 2;
+		TitleOP.DisplayY = TitleOP.Y;
+		TitleOP.X = Display.width/2;
+		TitleOP.DisplayX = TitleOP.X;
+		
 		Titleint.Width = 200;
-=======
-		Titleint.Width = 201;
->>>>>>> origin/master
 		Titleint.Height = 30;
 		Titleint.X = Display.width - 50 - Titleint.Width / 2;
 		Titleint.Y = Display.height - 143 - Titleint.Height / 2;
+	}
+	
 		LOGOBigging = 1.0f;
 		Bingging = true;
 		break;
 	case GAME_START:
-			TPLGetPalette(&Scren.Tex, SCRENTEX);
+		if(!Inited)
+		{
+				TPLGetPalette(&Scren.Tex, SCRENTEX);
 	TPLGetGXTexObjFromPalette(Scren.Tex, &Scren.TexObj, 0);
 
 	TPLGetPalette(&LandPixel[0].Tex, LANDPIXELTEX);
@@ -77,31 +92,24 @@ switch (Status)
 	TPLGetPalette(&Grass[0].Tex, GRASSTEX);
 	TPLGetGXTexObjFromPalette(Grass[0].Tex, &Grass[0].TexObj, 0);
 
-	LandPixel[0].Width = 60;
+	Stair->Init();
+	LandPixel[0].Width = 120;
 	LandNum = Background.width / LandPixel[0].Width + 1;
 	//LandNum = 41;
 	for (int i = 0; i < LandNum; i++) {
-		LandPixel[i].Height = 160;
-		LandPixel[i].Width = 60;
-<<<<<<< HEAD
-		LandPixel[i].Y = Background.height - LandPixel[i].Height / 2;
-=======
-		LandPixel[i].Y = SCREEN_HEIGHT - LandPixel[i].Height / 2;
->>>>>>> origin/master
+		LandPixel[i].Height = 200;
+			LandPixel[i].Width = 120;
+		LandPixel[i].Y = Background.height - LandPixel[i].Height / 2+ BleedSize+20;
 		LandPixel[i].DisplayY = LandPixel[i].Y;
 		LandPixel[i].X = LandPixel[i].Width / 2 + i*LandPixel[i].Width;
 		LandPixel[i].DisplayX = LandPixel[i].X;
 	}
-	Grass[0].Width = 60;
+	Grass[0].Width = 120;
 	GrassNum = Background.width / Grass[0].Width + 1;
 	for (int i = 0; i < GrassNum; i++) {
-		Grass[i].Height = 120;
-		Grass[i].Width = 60;
-<<<<<<< HEAD
-		Grass[i].Y = Background.height - Grass[i].Height / 2;
-=======
-		Grass[i].Y = SCREEN_HEIGHT - Grass[i].Height / 2;
->>>>>>> origin/master
+		Grass[i].Height = 148;
+			Grass[i].Width = 120;
+		Grass[i].Y = Background.height - Grass[i].Height / 2+ BleedSize+20;
 		Grass[i].DisplayY = Grass[i].Y;
 		Grass[i].X = Grass[i].Width / 2 + i*Grass[i].Width;
 		Grass[i].DisplayX = Grass[i].X;
@@ -110,7 +118,6 @@ switch (Status)
 	Scren.Height = SCREEN_HEIGHT;
 	Scren.X = Scren.Width / 2;
 	Scren.Y = Scren.Height / 2;
-<<<<<<< HEAD
 	FootingNum = 3;
 	Footing[0].X = 1024;
 	Footing[0].Y = Background.height - 220;
@@ -118,23 +125,15 @@ switch (Status)
 	Footing[1].Y = Background.height - 270;
 	Footing[2].X = 1200;
 	Footing[2].Y = Background.height - 760;
-=======
-	FootingNum = 2;
-	Footing[0].X = 1024;
-	Footing[0].Y = SCREEN_HEIGHT - 220;
-	Footing[1].X = 1224;
-	Footing[1].Y = SCREEN_HEIGHT - 270;
->>>>>>> origin/master
 	for (int i = 0; i < FootingNum; i++) {
 		Footing[i].Height = 20;
 		Footing[i].Width = 100;
 		Footing[i].DisplayY = Footing[i].Y;
 		Footing[i].DisplayX = Footing[i].X;
 	}
-<<<<<<< HEAD
 	Footing[2].Width = 400;
-=======
->>>>>>> origin/master
+		}
+		
 
 		break;
 	default:
@@ -163,6 +162,7 @@ void ImageClass::Update(){
 	case GAME_PLAY:
 		Display.Update(Background);
 		//Land.Ustart += 0.0003f;
+		Stair->Update();
 		for (u8 i = 0; i < LandNum; i++) {
 			LandPixel[i].Sync(Display);
 		}
@@ -178,30 +178,20 @@ void ImageClass::Update(){
 	}
 
 }
-/*
-void ImageClass::TitleInit(){
-	TPLGetPalette(&Title.Tex, TITLETEX);
-	TPLGetGXTexObjFromPalette(Title.Tex, &Title.TexObj, 0);
 
-	TPLGetPalette(&Titleint.Tex, TITLEINTTEX);
-	TPLGetGXTexObjFromPalette(Titleint.Tex, &Titleint.TexObj, 0);
-	Title.Width = SCREEN_WIDTH;
-	Title.Height = SCREEN_HEIGHT;
-	Title.X = Title.Width / 2;
-	Title.Y = Title.Height / 2;
+void ImageClass::TitleDraw(bool LookOP) {
+	if(!LookOP)
+	{
+		Draw2DCharacter(Title.TexObj, Title.X, Title.Y, Title.Width, Title.Height, 0, 0, 1, 1);
 
-	Titleint.Width = 219;
-	Titleint.Height = 65;
-	Titleint.X = 130;
-	Titleint.Y = 400;
-}
-*/
-void ImageClass::TitleDraw(int fcnt) {
-	Draw2DCharacter(Title.TexObj, Title.X, Title.Y, Title.Width, Title.Height, 0, 0, 1, 1);
+	}else{
+		Draw2DCharacter(TitleOP.TexObj, TitleOP.X, TitleOP.Y, TitleOP.Width, TitleOP.Height, 0, 0, 1, 1);
+	}
 	Draw2DCharacter(Titleint.TexObj, Titleint.X, Titleint.Y, Titleint.Width*LOGOBigging, Titleint.Height, 0, 0, 1, 1);
 }
 void ImageClass::BackDraw() {
 	Draw2DCharacter(Scren.TexObj, Scren.X, Scren.Y, Scren.Width, Scren.Height, 0, 0, 1, 1);//sky
+	Stair->Draw();
 	for (int i = 0; i < LandNum; i++) {
 		Draw2DCharacter(LandPixel[0].TexObj, LandPixel[i].DisplayX, LandPixel[i].DisplayY, LandPixel[i].Width, LandPixel[i].Height, LandPixel[i].Ustart, LandPixel[i].Vstart, LandPixel[i].Uwidth, LandPixel[i].Vheight);
 	}
