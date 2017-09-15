@@ -28,6 +28,12 @@ enum {
 	EvilMod
 };
 
+enum PlayerAttackMod
+{
+	defaultMod,
+	swordMod
+};
+
 //=========================================
 //		\‘¢‘Ì’è‹`
 //=========================================
@@ -55,6 +61,19 @@ public:
 	}
 	f32 AttBox_Wdith;
 	f32 AttBox_Height;
+	f32 swordBox_Wdith;
+	f32 swordBox_Height;
+	f32 swordBox_X() {
+		if (FacedRight) {
+			return (f32)X - 19;
+		}else {
+			return (f32)X + 19 - 100;
+
+		}
+	}
+	f32 swordBox_Y() {
+		return (f32)Y - 20;
+	}
 	f32 EvilBox_Wdith;
 	f32 EvilBox_Height;
 	f32 EvilBox_X(){
@@ -97,8 +116,22 @@ public:
 	void Climb();
 	void EvilHit();
 	u8 AnimeCnt(s8 n) {
-		const u8  *Anime_data[8] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb,AnimeEvilHit};
-		const u8 *ptAnime = Anime_data[StatusStyle];
+	const u8  *Anime_data[9] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit, AnimeClimb, AnimeEvilHit, AnimeSwordHit };
+		const u8 *ptAnime;// = Anime_data[StatusStyle];
+		if (StatusStyle != AttackStatus) {
+			ptAnime = Anime_data[StatusStyle];
+		}else{
+			switch (attackMod)
+			{
+			case swordMod:
+				ptAnime = Anime_data[8];
+				break;
+			default:
+				ptAnime = Anime_data[StatusStyle];
+				break;
+			}
+
+		}
 		return *(ptAnime + cnt+n);
 	}
 	u8 StopTime;
@@ -120,10 +153,14 @@ public:
 		AttBox_Height = 69.0f;
 		HitBox_Wdith = 43.0f;
 		HitBox_Height = 111.0f;
+		swordBox_Wdith = 100.0f;
+		swordBox_Height = 45.0f;
 		EvilBox_Wdith = 69.0f;
 		EvilBox_Height = 42.0f;
 		StopTime = 0;
 		EnemyInPlayerRight = false;
+		attackMod = defaultMod;
+		//attackMod = swordMod;
 		 
 	}
 private:
@@ -140,6 +177,7 @@ private:
 	f32 Uwidth;
 	f32 Vheight;
 	bool InDoubleJumpStatus;
+	PlayerAttackMod attackMod;
 
 	static const u8 AnimeStation[64];
 	static const u8 AnimeRun[64];
@@ -149,6 +187,7 @@ private:
 	static const u8 AnimeHit[64]; 
 	static	const u8 AnimeClimb[64];
 	static	const u8 AnimeEvilHit[64];
+	static	const u8 AnimeSwordHit[64];
 	//static 	const u8 *Anime_data[6];// = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit };
 
 	u8 cnt;
@@ -160,14 +199,32 @@ private:
 	int OnStairNum;
 	bool MoveHit();
 	bool AttHit(f32 x, f32 y, f32 w, f32 h) {
-		if (((AttBox_Y() + AttBox_Height >= y) && (AttBox_Y() - h <= y)) && ((AttBox_X() + AttBox_Wdith >= x) && (AttBox_X() - w <= x)))
-		{
-			return true;
-		}
-		else
-		{
-			return 	false;
-		}
+		f32 X, Y, width, height;
+			switch (attackMod)
+			{
+			case defaultMod:
+				X = AttBox_X();
+				Y = AttBox_Y();
+				width = AttBox_Wdith;
+				height = AttBox_Height;
+				break;
+			case swordMod:
+				X = swordBox_X();
+				Y = swordBox_Y();
+				width = swordBox_Wdith;
+				height = swordBox_Height;
+				break;
+			default:
+				break;
+			}
+			if (((Y + height >= y) && (Y - h <= y)) && ((X + width >= x) && (X - w <= x)))
+			{
+				return true;
+			}
+			else
+			{
+				return 	false;
+			}
 	}
 	bool EvilHit(float x, float y, float w, float h) {
 		if (((EvilBox_Y() + EvilBox_Height >= y) && (EvilBox_Y() - h <= y)) && ((EvilBox_X() + EvilBox_Wdith >= x) && (EvilBox_X() - w <= x)))

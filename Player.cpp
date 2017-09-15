@@ -26,7 +26,8 @@ const u8 PlayerClass::AnimeAttack[64] = { 32, 32, 32, 32, 32, 32, 33, 33, 33, 33
 const u8 PlayerClass::AnimeHit[64] = { 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0xff };//0xff：終了コード
 const u8 PlayerClass::AnimeClimb[64] = { 40,40,40,40,40,40,41,41,41,41,42,42,42,42,42,42,43,43,43,43,0xff };
 const u8 PlayerClass::AnimeEvilHit[64] = { 48,48,48,48,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,50,50,50,50,50,50,50,50,50,51,51,51,51,51,51,51,51,51,51,51,51,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,48,48,48,48,48,48,0xff };
-
+const u8 PlayerClass::AnimeSwordHit[64] = { 56,56,56,56,56,56,57,57,57,57,57,57,57,57,57,57,57,57, 59,59,59,59,59,59,59,59,59,61,61,61,61,61,61,61,61,61,61,61,61,0xff };//0xff：終了コード
+	
 void PlayerClass::Init() {
 	extern DisplayClass Display;
 	extern ImaginaryBackground Background;
@@ -60,6 +61,8 @@ void PlayerClass::Init() {
 	cnt = 0;
 	JumpCnt = 0;
 	InDoubleJumpStatus = false;
+	attackMod = defaultMod;
+
 }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Game LoopにPlayer更新関数定義
@@ -93,6 +96,9 @@ void PlayerClass::Update() {
 		
 		AllHitTest();		
 	}
+	if(attackMod == swordMod && StatusStyle == AttackStatus && cnt == 7){
+		PlaySample(&Samples[2]);
+	}
 
 }
 
@@ -105,6 +111,15 @@ void PlayerClass::Draw() {
 		Draw2DCharacter(TexObj, DisplayX, DisplayY, Width, Height, Ustart, Vstart, Uwidth, Vheight);
 	}else{
 		DrawPlayerRev(TexObj, DisplayX, DisplayY, Width, Height, Ustart, Vstart, Uwidth, Vheight);
+	}
+	if (AnimeCnt(0) == 57|| AnimeCnt(0) == 59)
+	{
+		if (FacedRight) {
+			Draw2DCharacter(TexObj, DisplayX+ Width, DisplayY, Width, Height,  Ustart+ Uwidth, Vstart, Uwidth, Vheight);
+		}
+		else {
+			DrawPlayerRev(TexObj, DisplayX- Width, DisplayY, Width, Height, Ustart + Uwidth, Vstart, Uwidth, Vheight);
+		}
 	}
 
 
@@ -192,6 +207,7 @@ void	PlayerClass::Operation() {
 		if (StatusStyle != JumpStatus) {
 			cnt = 0;
 			StatusStyle = AttackStatus;
+			
 		}
 	}
 	
@@ -294,7 +310,7 @@ void PlayerClass::Jump() {
 //	Player 攻撃処理関数定義
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void PlayerClass::Attack() {
-const u8 *Anime_data[8] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb,AnimeEvilHit};
+/*const u8 *Anime_data[8] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb,AnimeEvilHit};
 	const u8 *ptAnime = Anime_data[StatusStyle];
 	cnt += 1;
 	if (*(ptAnime + cnt) == 0xff) {
@@ -302,7 +318,7 @@ const u8 *Anime_data[8] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, Ani
 		StatusStyle = StationStatus;
 	}
 	else { cnt -= 1; }
-
+*/
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -323,21 +339,24 @@ void PlayerClass::EvilHit() {
 //	Player Animetion処理関数定義
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void PlayerClass::Animetion() {
-const u8 *Anime_data[8] = { AnimeStation, AnimeRun, AnimeJump, AnimeDefense, AnimeAttack, AnimeHit ,AnimeClimb,AnimeEvilHit};
+if (StatusStyle != ClimbStatus) { cnt += 1; }
+	if (AnimeCnt(0) == 0xff) {
 
-	const u8 *ptAnime = Anime_data[StatusStyle];
-	if (*(ptAnime + cnt) == 0xff) {
-
-		if (StatusStyle == JumpStatus) {
-			cnt = 16;
-		}
-		else {
+	if (StatusStyle == AttackStatus)
+		{
+			StatusStyle = StationStatus;
 			cnt = 0;
 		}
+		if (StatusStyle != JumpStatus) {
+			cnt = 0;
+		}
+		else {
+			cnt = 16;
+		}
 	}
-	Ustart = ((*(ptAnime + cnt)) % (u8)(1 / Uwidth))*Uwidth;
-	Vstart = ((*(ptAnime + cnt)) / (u8)(1 / Vheight))*Vheight;
-	if (StatusStyle != ClimbStatus) { cnt += 1; }
+	Ustart = ((AnimeCnt(0)) % (u8)(1 / Uwidth))*Uwidth;
+	Vstart = ((AnimeCnt(0)) / (u8)(1 / Vheight))*Vheight;
+	
 	//if (*(ptAnime + cnt) == 0xff) { cnt = 0; }
 }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -481,9 +500,9 @@ void PlayerClass::Climb() {
 			cnt = 0;
 			InDoubleJumpStatus = false;
 			StatusStyle = JumpStatus;
-		}else if ((kpads[0][0].hold & KPAD_BUTTON_UP)||(kpads[0][0].hold & KPAD_BUTTON_DOWN)) {
+		}/*else if ((kpads[0][0].hold & KPAD_BUTTON_UP)||(kpads[0][0].hold & KPAD_BUTTON_DOWN)) {
 			ladderHit = false;
-			if (Y != Initial_y /*&& !HitStair()*/) {
+			if (Y != Initial_y ) {
 				InFall = true;
 				for (int i = 0; i < FootingNum; i++) {
 					if (Player.FallHitTest(Footing[i].X, Footing[i].Y, Footing[i].Width, Footing[i].Height)) {
@@ -498,7 +517,7 @@ void PlayerClass::Climb() {
 					StatusStyle = JumpStatus;
 				}
 			}
-		}
+		}*/
 		
 	}
 	

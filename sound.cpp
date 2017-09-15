@@ -12,7 +12,13 @@ VoiceInfo Voices[AX_MAX_VOICES];
 // Filenames for samples to be played
 char SampleFiles [NUM_SAMPLES][256] = 
 {
-    "kick.dsp"
+    "kick.dsp",
+    "damage.dsp",
+    "swish.dsp",
+    "surprisinggirl.dsp",
+    "powerup.dsp",
+    "kungfu_wind.dsp",
+    "running.dsp"
    /*
     "snare.dsp",
     "tom.dsp",

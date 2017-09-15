@@ -6,7 +6,7 @@
 #include <demo.h>
 
 /*	for sound */
-#define NUM_SAMPLES     1//15
+#define NUM_SAMPLES     7//15
 // User Structures to keep track of data
 typedef struct
 {

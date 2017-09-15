@@ -23,7 +23,7 @@ void PlayerClass::AllHitTest() {
 	//**********************************************************************
 	//	“G‚ÉUŒ‚‚Ì“–‚½‚è”»’è
 	//**********************************************************************
-	if (*(ptAnime + cnt) == 33 || *(ptAnime + cnt) == 34) {
+	if (*(ptAnime + cnt) == 33 || *(ptAnime + cnt) == 34||*(ptAnime + cnt) == 57 || *(ptAnime + cnt) == 59) {
 		// 	Œ•“G‚ÉUŒ‚‚Ì“–‚½‚è”»’è
 		for (u8 i = 0; i < SwordEnemyNum; i++)
 		{
@@ -31,12 +31,22 @@ void PlayerClass::AllHitTest() {
 				if (AttHit(SwordEnemy[i].HitBox_X(), SwordEnemy[i].HitBox_Y(), SwordEnemy[i].HitBox_Wdith, SwordEnemy[i].HitBox_Height)) {
 					if (SwordEnemy[i].InvincibleTime == 0) {
 						StopTime = 5;
+					switch(attackMod)
+					{
+					case swordMod:
+						PlaySample(&Samples[5]);
+						break;
+					default:
+						PlaySample(&Samples[1]);
+						break;
+					}
 						SwordEnemy[i].HitOn();
 					}  // –³“GŠÔ“à‚Å‚Í‚È‚¢
 				}  // “G‚É“–‚½‚é
 			}  // “G‚ª¶‚«‚Ä‚¢‚é
 		}
 	}
+	
 	//**********************************************************************
 	//	“G‚ÉEvilHit‚Ì“–‚½‚è”»’è
 	//**********************************************************************
@@ -49,7 +59,9 @@ void PlayerClass::AllHitTest() {
 					if (SwordEnemy[i].InvincibleTime == 0) {
 						StopTime = 10;
 						SwordEnemy[i].EvilOn();
-						Hp += SwordEnemy[i].Hp * 4;
+						PlaySample(&Samples[4]);
+						attackMod = swordMod;
+						Hp += SwordEnemy[i].Hp * 2;
 						if (Hp > MaxHp) { Hp = MaxHp; }
 					}  // –³“GŠÔ“à‚Å‚Í‚È‚¢
 				}  // “G‚É“–‚½‚é
@@ -72,11 +84,13 @@ void PlayerClass::AllHitTest() {
 								// –hŒä‚·‚ê‚Î
 								if (Display.ShockOn == 0) {Display.ShockOn = 1;}
 								InvincibleTime = 30;
+								PlaySample(&Samples[0]);
 								Hp -= 1;
 							}else {
 								// –hŒä‚µ‚Ä‚¢‚È‚¢
 								if (X < SwordEnemy[i].X) {EnemyInPlayerRight = true;}else {
 									EnemyInPlayerRight = false;} // “G•ûˆÊ”»’è
+								PlaySample(&Samples[3]);
 								HitOn();
 							}
 						}
