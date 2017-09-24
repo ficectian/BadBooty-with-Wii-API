@@ -25,7 +25,7 @@ extern EnemyClass *Enemy;
 
 
 u8 fcnt;
-u8 Status;
+u8 Status = TITLE;
 bool LoopWaiting;
 u8 LoopFPS = 0;
 u8 GameLoop = 0;
@@ -118,7 +118,7 @@ switch (Status)
 	case GAME_START:
 		LoopWaiting = false;
 		Background.height = 1500;
-		Background.width = 3000;
+		Background.width = 2000;
 		Display.Init(Background);
 		Image->Init();
 		Player.Init(); //player‰Šú‰»
@@ -126,8 +126,9 @@ switch (Status)
 		GameUI->Init();
 		Inited = true;
 		Status = GAME_PLAY;
-
-		
+		break;
+	case GAME_WIN:
+		Image->Init();
 		break;
 	}
 
@@ -182,17 +183,18 @@ void GameUpdate(){
 			Status = TITLE;
 		}
 		if(!Enemy->AllHaveHp()) {  LoopWaiting = true; }
-		if(LoopFPS >=180){
+		if(LoopFPS >=90){
 			GameLoop += 1;
 			Enemy->AllInit();
 			LoopWaiting = false;
 			LoopFPS = 0;
 		}
 		if (LoopWaiting) { LoopFPS += 1; }
-		if (GameLoop > 3) {
+		if (GameLoop > 5) {
 			GameLoop = 0;
 			LookOP = false;
-			Status = TITLE;
+			Status = GAME_WIN; 
+			WiiMainInit();
 		}
 		break;
 	case GAME_OVER:
@@ -200,7 +202,9 @@ void GameUpdate(){
 		if (kpads[0][0].trig & KPAD_BUTTON_A) { Status = TITLE; }
 		break;
 	case GAME_WIN:
-		if (kpads[0][0].trig & KPAD_BUTTON_A){ Status = TITLE; }
+		Image->Update();
+		Player.Update(); //Player Move
+		if (kpads[0][0].trig & KPAD_BUTTON_A) { Status = TITLE; }
 		break;
 	}
 }
@@ -226,13 +230,18 @@ void GameDraw(){
 		Image->BackDraw();
 		Enemy->AllDraw();
 		Player.Draw();
-		Image->UpDraw(Player.Hp);
+		Image->UpDraw();
 		GameUI->Draw(Player.Hp);
 		/*for (u8 i = 0; i < ENEMYNUM; i++) {Enemy[i].Draw();}*/
 	
 		/*for(u8 i=0;i<5;i++){
 		Draw2DCharacter(texFontObj, i*50.0f+200.0f, 50.0f, 50.0f, 50.0f, (score_draw[i]+16)%16*0.0625f, 0.0625f, ((score_draw[i]+16)/16)*0.0625f, 0.0625f);
 		}*/
+		break;
+	case GAME_WIN:
+		Image->BackDraw();
+		Player.Draw();
+		Image->UpDraw();
 		break;
 		/*
 	case GAME_OVER:
@@ -242,13 +251,7 @@ void GameDraw(){
 			Draw2DCharacter(Titleint.TexObj, Titleint.X, Titleint.Y, Titleint.Width, Titleint.Height, 0, 0, 1, 1);
 		}
 		break;
-	case GAME_WIN:
-		Image->BackDraw();
-		Draw2DCharacter(WIN.TexObj, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 1, 1);
-		if (fcnt >30 == 0) {
-			Draw2DCharacter(Titleint.TexObj, Titleint.X, Titleint.Y, Titleint.Width, Titleint.Height, 0, 0, 1, 1);
-		}
-		break;*/
+*/
 	}
 }
 

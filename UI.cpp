@@ -74,7 +74,7 @@ void UIClass::Draw(int HP) {
 	u8 EnemyHPUI;
 	for (u8 i = 0; i < SwordEnemyNum; i++) {
 		if (SwordEnemy[i].Hp > 0) {
-			EnemyHPUI = SwordEnemy[i].Hp * 10 / SwordEnemy[i].MaxHp;
+			EnemyHPUI = (u8)(SwordEnemy[i].Hp * 10 / SwordEnemy[i].MaxHp);
 			Draw2DCharacter(EnemyHPBackground.TexObj, SwordEnemy[i].DisplayX, SwordEnemy[i].DisplayY - 70, EnemyHPBackground.Width, EnemyHPBackground.Height, EnemyHPBackground.Ustart, EnemyHPBackground.Vstart, EnemyHPBackground.Uwidth, EnemyHPBackground.Vheight);
 			for (int n = 0; n < EnemyHPUI; n++) {
 				Draw2DCharacter(EnemyHP.TexObj,(SwordEnemy[i].DisplayX - 40 + EnemyHP.Width / 2) + n*EnemyHP.Width, SwordEnemy[i].DisplayY - 70, EnemyHP.Width, EnemyHP.Height, EnemyHP.Ustart, EnemyHP.Vstart, EnemyHP.Uwidth, EnemyHP.Vheight);

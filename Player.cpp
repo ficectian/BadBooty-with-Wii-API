@@ -20,7 +20,7 @@ extern bool Inited;
 //ENEMYSHOOT EnemyShoot[ENEMYSHOOTMAX];
 const u8 PlayerClass::AnimeStation[64] = { 0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0xff };//0xff：終了コード
 const u8 PlayerClass::AnimeRun[64] = {8,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,0xff };
-const u8 PlayerClass::AnimeJump[64] = { 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0xff };
+const u8 PlayerClass::AnimeJump[64] = { 16,16,16,17,17,17,16,16,16,18,18,18,18,18,18,18,19,19,19,20,20,20,19,19,19,20,20,20,19,19,19,20,20,20,19,19,19,20,20,20,19,19,19,20,20,20,19,19,19,20,20,20,19,19,19,20,0xff };
 const u8 PlayerClass::AnimeDefense[64] ={ 24,24,24,24,24,24,24,24,24,24,24,24,25,25,25,25,25,25,25,25,25,25,25,25,0xff };//0xff：終了コード
 const u8 PlayerClass::AnimeAttack[64] = { 32, 32, 32, 32, 32, 32, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 0xff };//0xff：終了コード
 const u8 PlayerClass::AnimeHit[64] = { 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0xff };//0xff：終了コード
@@ -271,7 +271,7 @@ void PlayerClass::Jump() {
 			StatusStyle = StationStatus;
 			//Display.ShockOn = true;
 		}
-		if (*(ptAnime + cnt) == 18) {
+		if (*(ptAnime + cnt) == 19 || *(ptAnime + cnt) == 20) {
 			for (int i = 0; i < FootingNum; i++) {
 				if (Player.FallHitTest(Footing[i].X, Footing[i].Y, Footing[i].Width, Footing[i].Height)) {
 					Y = Footing[i].Y - Footing[i].Height / 2 - Height / 2 + 10;

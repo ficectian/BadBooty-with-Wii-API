@@ -1,4 +1,4 @@
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //		敵AI関数
 //		曜氷
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -6,6 +6,8 @@
 
 
 #include	"main.h"
+#include <stdlib.h> 
+#include <time.h>  
 #include "DrawPolygon.h"
 #include "Player.h"
 #include "Background.h"
@@ -22,8 +24,11 @@ EnemyClass SwordEnemy[64];
 u8 SwordEnemyNum;
 const u8 EnemyClass::AnimeRun[64] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0xff };//0xff：終了コード
 const u8 EnemyClass::AnimeAttack[128] = { 4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,6,6,6,6,6,6,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,0xfe };
-	
 const u8 EnemyClass::AnimeHit[64] = { 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 0xff };
+const u8 EnemyClass::Ball::bornBall[64] = { 0,0,0, 0,0,0,1,1,1,2,2,2,1,1,1,2,2,2,1,1,1,2,2,2,3,3,3,4,4,4,3,3,3,4,4,4,3,3,3,4,4,4,3,3,3,4,4,4,0xff };//0xff：終了コード	const byte deathBall[64] = { 9,9,9,8,8,8, 9,9,9,8,8,8,9,9,9,8,8,8,9,9,9,8,8,8,7,7,7,6,6,6,7,7,7,6,6,6,7,7,7,6,6,6,5,5,5,5,5,5,0xff };
+const u8 EnemyClass::Ball::deathBall[64] = { 9,9,9,8,8,8, 9,9,9,8,8,8,9,9,9,8,8,8,9,9,9,8,8,8,7,7,7,6,6,6,7,7,7,6,6,6,7,7,7,6,6,6,5,5,5,5,5,5,0xff };
+const u8 EnemyClass::Ball::loseBall[128] = { 14,14,14,13,13,13, 14,14,14,13,13,13, 14,14,14,13,13,13, 14,14,14,13,13,13,14,14,14,13,13,13,14,14,14,13,13,13,12,12,12,11,11,11,12,12,12,11,11,11,12,12,12,11,11,11,12,12,12,11,11,11,12,12,12,11,11,11,10,10,10,10,10,10,0xff };
+		
 
 //==========================================================================================================
 //		全体敵行為処理定義
@@ -34,7 +39,32 @@ const u8 EnemyClass::AnimeHit[64] = { 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 
 void	EnemyClass::AllInit() {
 	//extern DisplayClass Display;
 	extern u8 GameLoop;
-	SwordEnemyNum = 3;
+	SwordEnemyNum = 5;
+	
+	if (GameLoop == 0) {
+		if(!SwordEnemy[0].inited)
+		{
+			TPLGetPalette(&SwordEnemy[0].ptTex, ENEMYPTTEX);
+			TPLGetGXTexObjFromPalette(SwordEnemy[0].ptTex, &SwordEnemy[0].ptTexObj, 0);
+			TPLGetPalette(&SwordEnemy[0].ball.Tex, LIGHTBALLTEX);
+			TPLGetGXTexObjFromPalette(SwordEnemy[0].ball.Tex, &SwordEnemy[0].ball.TexObj, 0);
+			TPLGetPalette(&SwordEnemy[0].Tex, ENEMYTEX);
+			TPLGetGXTexObjFromPalette(SwordEnemy[0].Tex, &SwordEnemy[0].TexObj, 0);
+			SwordEnemy[0].MaxHp = 5;
+			SwordEnemy[0].inited = true;
+		}
+		
+		SwordEnemy[0].Init();
+		//SwordEnemy[0].Hp = SwordEnemy[0].MaxHp;
+		SwordEnemy[0].InitialX = 1200;
+		SwordEnemy[0].X = SwordEnemy[0].InitialX;
+	}
+	else
+	{
+		SwordEnemy[GameLoop].Init();
+		//SwordEnemy[GameLoop].Hp = SwordEnemy[GameLoop].MaxHp;
+	}
+	/*
 		if(!Inited)
 		{
 			TPLGetPalette(&SwordEnemy[0].Tex, ENEMYTEX);
@@ -50,6 +80,7 @@ void	EnemyClass::AllInit() {
 	{
 		SwordEnemy[i].Hp = 0;
 	}
+	
 	switch (GameLoop)
 	{
 	case 0:
@@ -90,7 +121,7 @@ void	EnemyClass::AllInit() {
 		
 	default:
 		break;
-	}
+	}*/
 
 }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -108,9 +139,8 @@ void EnemyClass::AllUpdate() {
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void	EnemyClass::AllDraw() {
 	for (int i = 0; i < SwordEnemyNum; i++) {
-		if (SwordEnemy[i].Hp > 0) {
-			SwordEnemy[i].Draw();
-		}
+		SwordEnemy[i].Draw();
+		
 	}
 }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -118,7 +148,7 @@ void	EnemyClass::AllDraw() {
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 bool	EnemyClass::AllHaveHp() {
 	for (int i = 0; i < SwordEnemyNum; i++) {
-		if (SwordEnemy[i].Hp > 0) { return true; }
+		if (SwordEnemy[i].broned != 0 && SwordEnemy[i].deaded != 2) { return true; }	
 	}
 
 	return false;
@@ -127,16 +157,60 @@ bool	EnemyClass::AllHaveHp() {
 //==========================================================================================================
 //		個体敵行為処理定義（剣敵）
 //==========================================================================================================
+void EnemyClass::Init() {
+	int x;
+	srand((unsigned)time(NULL));
+	x = (int)(rand() % 3);
+
+	srand((unsigned)time(NULL));
+	x = (int)(rand() % 3);
+	if(!inited)
+	{
+		TPLGetPalette(&ptTex, ENEMYPTTEX);
+		TPLGetGXTexObjFromPalette(ptTex, &ptTexObj, 0);
+		TPLGetPalette(&ball.Tex, LIGHTBALLTEX);
+		TPLGetGXTexObjFromPalette(ball.Tex, &ball.TexObj, 0);
+		if (x == 1) {
+			TPLGetPalette(&Tex, ENEMYSPTEX);
+			TPLGetGXTexObjFromPalette(Tex, &TexObj, 0);
+			MaxHp = 10;
+		}else{
+			TPLGetPalette(&Tex, ENEMYTEX);
+			TPLGetGXTexObjFromPalette(Tex, &TexObj, 0);
+			MaxHp = 5;
+		}
+		
+		inited = true;
+	}
+
+	InitialX = (f32)(rand() % Background.width);
+	InitialY = (f32)(Background.height - InitialPlayerHeight - SwordEnemy[0].Height / 2);
+	Y = InitialY;
+	DisplayX = X;
+	DisplayY = Y;
+	broned = 1;
+	deaded = 0;
+	losed = 0;
+	StatusStyle = EnemyRunAnime;
+	ActionMod = PatrolMod;
+}
+
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //	剣敵更新関数定義
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void	EnemyClass::Update() {
-if (Hp > 0) {
+
+if(broned!=0 && deaded != 2)
+{
 		//**********************************************************************
 		//	描画座標の更新
 		//**********************************************************************
 		DisplayX = X - Display.MoveDistance_x;
 		DisplayY = Y - Display.MoveDistance_y;
+}
+if (broned==2 && deaded == 0) {
+	
 
 		if (InvincibleTime != 0) { InvincibleTime -= 1; }  //	無敵時間の処理
 		switch (ActionMod)
@@ -166,31 +240,77 @@ if (Hp > 0) {
 //	剣敵Animetion関数定義
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void EnemyClass::Animetion() {
-	const u8 *Anime_data[3] = { AnimeRun,AnimeAttack,AnimeHit };
-	const u8 *ptAnime = Anime_data[StatusStyle];
-	if (*(ptAnime + cnt) == 0xff) {
-		cnt = 0;
+	
+	if (broned == 2 && deaded == 0) {
+		const u8 *Anime_data[3] = { AnimeRun,AnimeAttack,AnimeHit };
+		const u8 *ptAnime = Anime_data[StatusStyle];
+		if (*(ptAnime + cnt) == 0xff) {
+			cnt = 0;
+		}
+		if (*(ptAnime + cnt) == 0xfe) {
+			StatusStyle = EnemyRunAnime;
+			cnt = 0;
+		}
+		Ustart = ((*(ptAnime + cnt)) % (int)(1 / Uwidth))*Uwidth;
+		Vstart = ((*(ptAnime + cnt)) / (int)(1 / Vheight))*Vheight;
+		cnt += 1;
 	}
-	if (*(ptAnime + cnt) == 0xfe) {
-		StatusStyle = EnemyRunAnime;
-		cnt = 0;
+	
+	if (broned == 1) {
+		if (ball.runBronAnime()) {
+			broned = 2;
+			Hp = MaxHp;
+		}	
 	}
-	Ustart = ((*(ptAnime + cnt)) % (int)(1 / Uwidth))*Uwidth;
-	Vstart = ((*(ptAnime + cnt)) / (int)(1 / Vheight))*Vheight;
-	cnt += 1;
+	if (losed == 1) {
+		if (ball.runLoseAnime()) {
+			losed = 2;
+		//	deaded=1;
+		}
+	}
+	if (deaded == 1) {
+		if (ball.runDeadAnime()) {
+			deaded = 2;
+		}
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //	剣敵関数定義
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void EnemyClass::Draw() {
-	Animetion();
-
-	if (FacedLeft) {
-		Draw2DCharacter(TexObj, DisplayX, DisplayY, Width, Height, Ustart, Vstart, Uwidth, Vheight);
+	if (broned == 2 && deaded == 0) {
+		Animetion();
+		if (FacedLeft) {
+			Draw2DCharacter(TexObj, DisplayX, DisplayY, Width, Height, Ustart, Vstart, Uwidth, Vheight);
+		}
+		else {
+			DrawPlayerRev(TexObj, DisplayX, DisplayY, Width, Height, Ustart, Vstart, Uwidth, Vheight);
+		}
 	}
-	else {
-		DrawPlayerRev(TexObj, DisplayX, DisplayY, Width, Height, Ustart, Vstart, Uwidth, Vheight);
+	
+	if (broned == 1 || deaded == 1) {
+		Animetion();
+		ball.Draw(DisplayX, DisplayY);
+	}
+	if (losed == 1) {
+		Animetion();
+		ball.Draw2(DisplayX, DisplayY);
+	}
+
+	
+	//HP
+	if (broned != 0 && deaded != 2) {
+		if (DisplayX>Display.width)
+		{
+			Draw2DCharacter(ptTexObj, Display.width - EnemyPtSize, DisplayY, EnemyPtSize, EnemyPtSize, 0.5, 0, 0.5, 1);
+
+		}
+		else if (DisplayX<0)
+		{
+			Draw2DCharacter(ptTexObj, EnemyPtSize, DisplayY, EnemyPtSize, EnemyPtSize, 0, 0, 0.5, 1);
+
+		}
 	}
 }
 
@@ -225,6 +345,10 @@ void EnemyClass::Hit() {
 		HitCnt = 0;
 		cnt = 0;
 		Hp -= 1;
+		if (Hp <= 0) {
+			Hp = 0;
+			deaded = 1;
+		}
 		StatusStyle = EnemyRunAnime;
 		ActionMod = PatrolMod;
 	}
@@ -245,7 +369,7 @@ void	EnemyClass::EvilOn() {
 	}else{
 		X = Player.X - 49 + 16;
 	}
-	
+	losed = 1;
 	Y = Player.Y -16;
 }
 
@@ -258,6 +382,7 @@ void EnemyClass::Evil() {
 	if (HitCnt > 15) {
 		HitCnt = 0;
 		Hp = 0;
+		deaded = 1;
 		ActionMod = PatrolMod;
 	}
 }
@@ -344,3 +469,19 @@ void EnemyClass::Return() {
 }
 
 
+
+
+void EnemyClass::Ball::Draw(float x, float y) {
+	Draw2DCharacter(TexObj, x, y, Width, Height, Ustart, Vstart, Uwidth, Vheight);
+}
+
+void EnemyClass::Ball::Draw2(float x, float y) {
+	extern PlayerClass Player;
+	float X;
+	if (Player.FacedRight) {
+		X = x - cnt2;
+	}else {
+		X = x + cnt2;
+	}
+	Draw2DCharacter(TexObj, X, y, Width, Height, Ustart2, Vstart2, Uwidth, Vheight);
+}

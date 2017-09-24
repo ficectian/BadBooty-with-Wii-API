@@ -161,7 +161,7 @@ public:
 	void TitleInit();
 	void TitleDraw(bool);
 	void BackDraw();
-	void UpDraw(int);
+	void UpDraw();
 	void Sync(DisplayClass Display) {
 		DisplayX = X - Display.MoveDistance_x;
 		DisplayY = Y - Display.MoveDistance_y;

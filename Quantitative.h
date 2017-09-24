@@ -23,6 +23,8 @@
 #define HEATGAP		(30.0f)
 #define BleedSize (15.0f)
 #define InitialPlayerHeight (100.0f)
+#define EnemyPtSize (32.0f)
+
 
 #define PLAYERTEX "Player.tpl"
 //#define FONTTEX "sysfont.tpl"
@@ -43,5 +45,11 @@
 #define LANDTEX	"Land.tpl"
 #define ENEMYTEX "Enemy.tpl"
 #define STAIRTEX "Ladder.tpl"
+
 #define ENEMYHPTEX	"EnemyHP.tpl"
 #define ENEMYHPBGTEX "EnemyHPBackground.tpl"
+#define ENEMYSPTEX "EnemySpecial.tpl"
+#define LIGHTBALLTEX"lightBall.tpl"
+#define ENEMYPTTEX "EnemyPt.tpl"
+
+#define	THANKPLAYTEX "thankForPlay.tpl"

@@ -25,6 +25,7 @@ ImageClass Scren;
 //ImageClass Land;
 ImageClass Title;
 ImageClass TitleOP;
+ImageClass *thankPlay; 
 ImageClass Titleint;
 ImageClass Grass[128];
 ImageClass LandPixel[256];
@@ -136,6 +137,19 @@ switch (Status)
 		
 
 		break;
+	case GAME_WIN:
+		if (thankPlay == NULL) {
+		thankPlay = new ImageClass; 
+		TPLGetPalette(&thankPlay->Tex, THANKPLAYTEX);
+		TPLGetGXTexObjFromPalette(thankPlay->Tex, &thankPlay->TexObj, 0);
+		}
+		thankPlay->Width = 339.0f;
+		thankPlay->Height = 110.0f;
+		thankPlay->X = Display.width / 2;
+		thankPlay->Y = Display.height / 2;
+		thankPlay->DisplayX = thankPlay->X;
+		thankPlay->DisplayY = thankPlay->Y;
+		break;
 	default:
 		break;
 	}
@@ -173,6 +187,16 @@ void ImageClass::Update(){
 			Grass[i].Sync(Display);
 		}
 		break;
+	case GAME_WIN:
+		if (Bingging) {
+			LOGOBigging += 0.01f;
+			if (LOGOBigging >= 1.2f) { Bingging = false; }
+		}
+		else {
+			LOGOBigging -= 0.01f;
+			if (LOGOBigging <= 0.8f) { Bingging = true; }
+		}
+		break;
 	default:
 		break;
 	}
@@ -189,19 +213,43 @@ void ImageClass::TitleDraw(bool LookOP) {
 	}
 	Draw2DCharacter(Titleint.TexObj, Titleint.X, Titleint.Y, Titleint.Width*LOGOBigging, Titleint.Height, 0, 0, 1, 1);
 }
+
+
 void ImageClass::BackDraw() {
-	Draw2DCharacter(Scren.TexObj, Scren.X, Scren.Y, Scren.Width, Scren.Height, 0, 0, 1, 1);//sky
-	Stair->Draw();
-	for (int i = 0; i < LandNum; i++) {
-		Draw2DCharacter(LandPixel[0].TexObj, LandPixel[i].DisplayX, LandPixel[i].DisplayY, LandPixel[i].Width, LandPixel[i].Height, LandPixel[i].Ustart, LandPixel[i].Vstart, LandPixel[i].Uwidth, LandPixel[i].Vheight);
+	switch (Status)
+	{
+	case GAME_PLAY:
+		Draw2DCharacter(Scren.TexObj, Scren.X, Scren.Y, Scren.Width, Scren.Height, 0, 0, 1, 1);//sky
+		Stair->Draw();
+		for (int i = 0; i < LandNum; i++) {
+			Draw2DCharacter(LandPixel[0].TexObj, LandPixel[i].DisplayX, LandPixel[i].DisplayY, LandPixel[i].Width, LandPixel[i].Height, LandPixel[i].Ustart, LandPixel[i].Vstart, LandPixel[i].Uwidth, LandPixel[i].Vheight);
+		}
+
+		for (int i = 0; i < FootingNum; i++) {
+			Draw2DCharacter(Footing[0].TexObj, Footing[i].DisplayX, Footing[i].DisplayY, Footing[i].Width, Footing[i].Height, Footing[i].Ustart, Footing[i].Vstart, Footing[i].Uwidth, Footing[i].Vheight);
+		}
+		break;
+	case GAME_WIN:
+		Draw2DCharacter(Scren.TexObj, Scren.X, Scren.Y, Scren.Width, Scren.Height, 0, 0, 1, 1);//sky
+		for (int i = 0; i < LandNum; i++) {
+			Draw2DCharacter(LandPixel[0].TexObj, LandPixel[i].DisplayX, LandPixel[i].DisplayY, LandPixel[i].Width, LandPixel[i].Height, LandPixel[i].Ustart, LandPixel[i].Vstart, LandPixel[i].Uwidth, LandPixel[i].Vheight);
+		}
+
+		Draw2DCharacter(Titleint.TexObj, Titleint.X, Titleint.Y, Titleint.Width*LOGOBigging, Titleint.Height, 0, 0, 1, 1);
+		Draw2DCharacter(thankPlay->TexObj, thankPlay->X, thankPlay->Y, thankPlay->Width, thankPlay->Height, 0, 0, 1, 1);
+
+		break;
+	default:
+		break;
 	}
 
-	for (int i = 0; i < FootingNum; i++) {
-		Draw2DCharacter(Footing[0].TexObj, Footing[i].DisplayX, Footing[i].DisplayY, Footing[i].Width, Footing[i].Height, Footing[i].Ustart, Footing[i].Vstart, Footing[i].Uwidth, Footing[i].Vheight);
-	}
+
+
 }
 
-void ImageClass::UpDraw(int HP) {
+
+
+void ImageClass::UpDraw() {
 	for (int i = 0; i < GrassNum; i++) {
 		Draw2DCharacter(Grass[0].TexObj, Grass[i].DisplayX, Grass[i].DisplayY, Grass[i].Width, Grass[i].Height, Grass[i].Ustart, Grass[i].Vstart, Grass[i].Uwidth, Grass[i].Vheight);
 	}
